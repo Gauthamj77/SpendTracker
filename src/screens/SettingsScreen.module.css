@@ -1,0 +1,13 @@
+.screen { height: 100dvh; display: flex; flex-direction: column; }
+.header { display: flex; align-items: center; gap: 12px; padding: 16px; border-bottom: 1px solid var(--gray-200); background: #fff; }
+.back { color: var(--blue); font-size: 0.95rem; }
+.title { font-size: 1.1rem; font-weight: 700; }
+.body { flex: 1; overflow-y: auto; padding: 20px 16px; display: flex; flex-direction: column; gap: 24px; }
+.section { display: flex; flex-direction: column; gap: 10px; }
+.sectionTitle { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--gray-400); letter-spacing: 0.05em; }
+.listItem { padding: 10px 12px; border: 1.5px solid var(--gray-200); border-radius: 8px; font-size: 0.95rem; width: 100%; }
+.addRow { display: flex; gap: 8px; }
+.addInput { flex: 1; padding: 10px 12px; border: 1.5px solid var(--gray-200); border-radius: 8px; font-size: 0.95rem; }
+.addBtn { padding: 10px 16px; background: var(--blue); color: white; border-radius: 8px; font-weight: 600; }
+.addBtn:disabled { opacity: 0.5; }
+.signOutBtn { padding: 12px; background: var(--gray-100); border-radius: var(--radius); color: var(--red); font-weight: 600; width: 100%; }
