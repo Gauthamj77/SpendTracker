@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
-  base: '/spend-tracker/',
+  base: '/SpendTracker/',
   plugins: [
     react(),
     VitePWA({
@@ -11,7 +11,7 @@ export default defineConfig({
       manifest: {
         name: 'Spend Tracker',
         short_name: 'Spends',
-        start_url: '/spend-tracker/',
+        start_url: '/SpendTracker/',
         display: 'standalone',
         background_color: '#ffffff',
         theme_color: '#2563eb',

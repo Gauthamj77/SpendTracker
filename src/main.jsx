@@ -6,7 +6,7 @@ import './styles/global.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <BrowserRouter basename="/spend-tracker">
+    <BrowserRouter basename="/SpendTracker">
       <App />
     </BrowserRouter>
   </React.StrictMode>
