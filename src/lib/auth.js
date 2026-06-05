@@ -20,9 +20,12 @@ export function initTokenClient(onTokenResponse) {
     client_id: CLIENT_ID,
     scope: 'https://www.googleapis.com/auth/spreadsheets',
     callback: (response) => {
-      if (response.error) return
+      if (response.error) {
+        onTokenResponse(null, response.error)
+        return
+      }
       setAccessToken(response.access_token)
-      onTokenResponse(response.access_token)
+      onTokenResponse(response.access_token, null)
     }
   })
   return _tokenClient

@@ -1,15 +1,15 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { initTokenClient, requestToken, signOut as authSignOut } from '../lib/auth.js'
 
-const AuthContext = createContext(null)
+export const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
   const [accessToken, setAccessToken] = useState(null)
   const [sheetId, setSheetIdState] = useState(() => localStorage.getItem('sheetId') || '')
   const [loading, setLoading] = useState(true)
 
-  const onTokenResponse = useCallback((token) => {
-    setAccessToken(token)
+  const onTokenResponse = useCallback((token, error) => {
+    if (!error && token) setAccessToken(token)
     setLoading(false)
   }, [])
 
@@ -19,7 +19,6 @@ export function AuthProvider({ children }) {
         clearInterval(interval)
         initTokenClient(onTokenResponse)
         requestToken('none')
-        setTimeout(() => setLoading(false), 2000)
       }
     }, 100)
     return () => clearInterval(interval)
@@ -46,6 +45,8 @@ export function AuthProvider({ children }) {
   )
 }
 
-export function useAuthContext() {
-  return useContext(AuthContext)
+function useAuthContext() {
+  const ctx = useContext(AuthContext)
+  if (!ctx) throw new Error('useAuth must be used within AuthProvider')
+  return ctx
 }
