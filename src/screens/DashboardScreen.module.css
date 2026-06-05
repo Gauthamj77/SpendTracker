@@ -1,0 +1,18 @@
+.screen { height: 100dvh; display: flex; flex-direction: column; }
+.header { display: flex; align-items: center; justify-content: space-between; padding: 16px; background: #fff; border-bottom: 1px solid var(--gray-200); }
+.title { font-size: 1.2rem; font-weight: 700; }
+.settings { font-size: 1.4rem; text-decoration: none; color: var(--gray-400); }
+.filters, .personFilter { display: flex; gap: 8px; padding: 10px 16px; overflow-x: auto; background: #fff; }
+.personFilter { border-bottom: 1px solid var(--gray-200); }
+.filter, .activeFilter { padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; white-space: nowrap; border: 1.5px solid var(--gray-200); cursor: pointer; }
+.activeFilter { background: var(--blue); color: white; border-color: var(--blue); font-weight: 600; }
+.loading { text-align: center; padding: 40px; color: var(--gray-400); }
+.body { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 20px; }
+.cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.card { background: #fff; border-radius: var(--radius); padding: 16px; border: 1px solid var(--gray-200); display: flex; flex-direction: column; gap: 6px; }
+.cardLabel { font-size: 0.75rem; color: var(--gray-400); text-transform: uppercase; font-weight: 600; }
+.cardSpend { font-size: 1.4rem; font-weight: 700; color: var(--red); }
+.cardIncome { font-size: 1.4rem; font-weight: 700; color: var(--green); }
+.chart { background: #fff; border-radius: var(--radius); padding: 16px; border: 1px solid var(--gray-200); }
+.chartTitle { font-size: 0.875rem; font-weight: 700; margin-bottom: 12px; color: var(--gray-600); }
+.empty { text-align: center; padding: 40px; color: var(--gray-400); }
