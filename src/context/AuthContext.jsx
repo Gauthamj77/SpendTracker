@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import { createContext, useState, useEffect, useCallback } from 'react'
 import { initTokenClient, requestToken, signOut as authSignOut } from '../lib/auth.js'
 
 export const AuthContext = createContext(null)
@@ -17,11 +17,19 @@ export function AuthProvider({ children }) {
     const interval = setInterval(() => {
       if (typeof google !== 'undefined' && google.accounts) {
         clearInterval(interval)
+        clearTimeout(timeout)
         initTokenClient(onTokenResponse)
         requestToken('none')
       }
     }, 100)
-    return () => clearInterval(interval)
+    const timeout = setTimeout(() => {
+      clearInterval(interval)
+      setLoading(false)
+    }, 10000)
+    return () => {
+      clearInterval(interval)
+      clearTimeout(timeout)
+    }
   }, [onTokenResponse])
 
   const signIn = useCallback(() => {
@@ -43,10 +51,4 @@ export function AuthProvider({ children }) {
       {children}
     </AuthContext.Provider>
   )
-}
-
-function useAuthContext() {
-  const ctx = useContext(AuthContext)
-  if (!ctx) throw new Error('useAuth must be used within AuthProvider')
-  return ctx
 }
