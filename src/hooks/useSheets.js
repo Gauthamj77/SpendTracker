@@ -4,7 +4,7 @@ import { appendSpend, readAllSpends, updateSpend, deleteSpend, getSpendSheetNume
 import { generateId, toISOLocal } from '../lib/utils.js'
 
 export function useSheets() {
-  const { sheetId, accessToken } = useAuth()
+  const { sheetId, userEmail } = useAuth()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
@@ -15,7 +15,7 @@ export function useSheets() {
       const entry = {
         ID: generateId(),
         Timestamp: timestamp || toISOLocal(),
-        AddedBy: accessToken ? parseJwt(accessToken)?.email ?? 'unknown' : 'unknown',
+        AddedBy: userEmail || 'unknown',
         Amount: String(amount),
         Type: type,
         Category: category,
@@ -47,9 +47,18 @@ export function useSheets() {
   }, [sheetId])
 
   const editEntry = useCallback(async (rowIndex, updatedFields, existingEntry) => {
-    const updated = { ...existingEntry, ...updatedFields, EditedAt: toISOLocal() }
-    await updateSpend(sheetId, rowIndex, updated)
-    return updated
+    setLoading(true)
+    setError(null)
+    try {
+      const updated = { ...existingEntry, ...updatedFields, EditedAt: toISOLocal() }
+      await updateSpend(sheetId, rowIndex, updated)
+      return updated
+    } catch (e) {
+      setError(e.message)
+      throw e
+    } finally {
+      setLoading(false)
+    }
   }, [sheetId])
 
   const removeEntry = useCallback(async (rowIndex) => {
@@ -58,12 +67,4 @@ export function useSheets() {
   }, [sheetId])
 
   return { addEntry, fetchAll, editEntry, removeEntry, loading, error }
-}
-
-function parseJwt(token) {
-  try {
-    return JSON.parse(atob(token.split('.')[1]))
-  } catch {
-    return null
-  }
 }

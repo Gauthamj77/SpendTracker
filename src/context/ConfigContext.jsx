@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback } from 'react'
+import { createContext, useState, useCallback } from 'react'
 import { readConfig, writeConfig } from '../lib/sheetsClient.js'
 import { useAuth } from '../hooks/useAuth.js'
 
@@ -35,8 +35,3 @@ export function ConfigProvider({ children }) {
   )
 }
 
-export function useConfigContext() {
-  const ctx = useContext(ConfigContext)
-  if (!ctx) throw new Error('useConfig must be used within ConfigProvider')
-  return ctx
-}

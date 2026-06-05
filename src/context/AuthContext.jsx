@@ -5,11 +5,26 @@ export const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
   const [accessToken, setAccessToken] = useState(null)
+  const [userEmail, setUserEmail] = useState('')
   const [sheetId, setSheetIdState] = useState(() => localStorage.getItem('sheetId') || '')
   const [loading, setLoading] = useState(true)
 
-  const onTokenResponse = useCallback((token, error) => {
-    if (!error && token) setAccessToken(token)
+  const onTokenResponse = useCallback(async (token, error) => {
+    if (!error && token) {
+      setAccessToken(token)
+      // Fetch user email from Google userinfo
+      try {
+        const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        if (res.ok) {
+          const info = await res.json()
+          setUserEmail(info.email || '')
+        }
+      } catch {
+        // non-fatal, email stays empty
+      }
+    }
     setLoading(false)
   }, [])
 
@@ -47,7 +62,7 @@ export function AuthProvider({ children }) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ accessToken, sheetId, loading, signIn, signOut, saveSheetId }}>
+    <AuthContext.Provider value={{ accessToken, sheetId, loading, userEmail, signIn, signOut, saveSheetId }}>
       {children}
     </AuthContext.Provider>
   )
