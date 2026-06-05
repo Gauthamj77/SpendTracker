@@ -1,0 +1,8 @@
+.form { display: flex; flex-direction: column; gap: 20px; }
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.label { font-size: 0.75rem; font-weight: 600; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.05em; }
+.input { padding: 10px 12px; border: 1.5px solid var(--gray-200); border-radius: 8px; font-size: 1rem; background: #fff; }
+.toggle { display: flex; gap: 6px; }
+.activeToggle { padding: 8px 14px; background: var(--blue); color: white; border-radius: 8px; font-size: 0.875rem; font-weight: 600; }
+.inactiveToggle { padding: 8px 14px; background: var(--gray-100); color: var(--gray-600); border-radius: 8px; font-size: 0.875rem; }
