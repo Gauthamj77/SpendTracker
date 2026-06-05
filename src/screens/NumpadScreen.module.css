@@ -1,0 +1,46 @@
+.screen { display: flex; flex-direction: column; height: 100dvh; padding: 16px; }
+.header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.toggle { display: flex; background: var(--gray-100); border-radius: 8px; padding: 3px; gap: 3px; }
+.activeToggle, .inactiveToggle { padding: 6px 18px; border-radius: 6px; font-weight: 600; font-size: 0.875rem; }
+.activeToggle { background: var(--blue); color: white; }
+.inactiveToggle { color: var(--gray-400); }
+.settingsBtn { font-size: 1.4rem; text-decoration: none; color: var(--gray-400); }
+
+.display {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  gap: 8px;
+}
+.currency { font-size: 2rem; color: var(--gray-400); align-self: flex-start; margin-top: 12px; }
+.amount { font-size: 3.5rem; font-weight: 700; color: var(--gray-900); }
+
+.numpad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  gap: 10px;
+  padding-bottom: 8px;
+}
+.key {
+  aspect-ratio: 1.6;
+  background: var(--gray-100);
+  border-radius: var(--radius);
+  font-size: 1.4rem;
+  font-weight: 500;
+  color: var(--gray-900);
+}
+.confirmKey {
+  aspect-ratio: 1.6;
+  background: var(--blue);
+  border-radius: var(--radius);
+  font-size: 1.4rem;
+  color: white;
+  font-weight: 700;
+}
+.deleteKey {
+  grid-column: 1;
+  aspect-ratio: 1.6;
+  background: var(--gray-100);
+  border-radius: var(--radius);
+  font-size: 1.2rem;
+  color: var(--gray-600);
+}
