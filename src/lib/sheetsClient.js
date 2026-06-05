@@ -88,5 +88,6 @@ export async function getSpendSheetNumericId(sheetId) {
   if (!res.ok) throw new Error(`Sheet metadata failed: ${res.status}`)
   const data = await res.json()
   const sheet = data.sheets.find(s => s.properties.title === 'Spends')
-  return sheet?.properties?.sheetId ?? 0
+  if (!sheet) throw new Error(`'Spends' tab not found in spreadsheet ${sheetId}`)
+  return sheet.properties.sheetId
 }

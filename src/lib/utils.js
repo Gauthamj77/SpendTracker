@@ -26,7 +26,7 @@ export function filterEntries(entries, { dateFrom, dateTo, person, type }) {
   return entries.filter(e => {
     if (dateFrom && e.Timestamp < dateFrom) return false
     if (dateTo && e.Timestamp > dateTo + 'T23:59:59') return false
-    if (person && person !== 'both' && e.AddedBy !== person) return false
+    if (person && person !== 'both' && getInitials(e.AddedBy) !== person) return false
     if (type && type !== 'both' && e.Type !== type) return false
     return true
   })
@@ -36,16 +36,16 @@ export function getDateRange(preset) {
   const now = new Date()
   const y = now.getFullYear(), m = now.getMonth()
   if (preset === 'thisMonth') return {
-    dateFrom: new Date(y, m, 1).toISOString().slice(0, 10),
-    dateTo: now.toISOString().slice(0, 10)
+    dateFrom: toISOLocal(new Date(y, m, 1)).slice(0, 10),
+    dateTo: toISOLocal(now).slice(0, 10)
   }
   if (preset === 'lastMonth') return {
-    dateFrom: new Date(y, m - 1, 1).toISOString().slice(0, 10),
-    dateTo: new Date(y, m, 0).toISOString().slice(0, 10)
+    dateFrom: toISOLocal(new Date(y, m - 1, 1)).slice(0, 10),
+    dateTo: toISOLocal(new Date(y, m, 0)).slice(0, 10)
   }
   if (preset === 'last3Months') return {
-    dateFrom: new Date(y, m - 3, 1).toISOString().slice(0, 10),
-    dateTo: now.toISOString().slice(0, 10)
+    dateFrom: toISOLocal(new Date(y, m - 3, 1)).slice(0, 10),
+    dateTo: toISOLocal(now).slice(0, 10)
   }
   return { dateFrom: '', dateTo: '' }
 }
