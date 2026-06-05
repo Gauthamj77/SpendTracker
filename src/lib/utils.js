@@ -22,12 +22,13 @@ export function getInitials(email) {
   return email ? email[0].toUpperCase() : '?'
 }
 
-export function filterEntries(entries, { dateFrom, dateTo, person, type }) {
+export function filterEntries(entries, { dateFrom, dateTo, person, type, category }) {
   return entries.filter(e => {
     if (dateFrom && e.Timestamp < dateFrom) return false
     if (dateTo && e.Timestamp > dateTo + 'T23:59:59') return false
     if (person && person !== 'both' && getInitials(e.AddedBy) !== person) return false
     if (type && type !== 'both' && e.Type !== type) return false
+    if (category && e.Category !== category) return false
     return true
   })
 }
