@@ -7,7 +7,7 @@ export function AuthProvider({ children }) {
   const [accessToken, setAccessToken] = useState(null)
   const [userEmail, setUserEmail] = useState('')
   const [sheetId, setSheetIdState] = useState('102DPBAyklQVt_YGNacO0LTC9iE88AxK-xxqvIjyq3js')
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const refreshTimerRef = useRef(null)
 
   const onTokenResponse = useCallback(async (token, error) => {
@@ -48,7 +48,7 @@ export function AuthProvider({ children }) {
     const timeout = setTimeout(() => {
       clearInterval(interval)
       setLoading(false)
-    }, 5000)
+    }, 2000)
     return () => {
       clearInterval(interval)
       clearTimeout(timeout)
