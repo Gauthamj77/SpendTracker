@@ -127,7 +127,7 @@ export default function DashboardScreen() {
                     label={({ name, percent }) => `${name} ${(percent*100).toFixed(0)}%`}
                     labelLine={false}
                   >
-                    {categoryData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                    {categoryData.map((entry, i) => <Cell key={entry.name} fill={COLORS[i % COLORS.length]} />)}
                   </Pie>
                   <Tooltip formatter={v => `&#8377;${formatAmount(v)}`} />
                 </PieChart>
