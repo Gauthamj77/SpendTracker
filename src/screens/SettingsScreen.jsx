@@ -109,6 +109,11 @@ export default function SettingsScreen() {
         )}
 
         <div className={styles.section}>
+          <h3 className={styles.sectionTitle}>Data</h3>
+          <button className={styles.importBtn} onClick={() => navigate('/import')}>Import CSV</button>
+        </div>
+
+        <div className={styles.section}>
           <h3 className={styles.sectionTitle}>Account</h3>
           <button className={styles.signOutBtn} onClick={signOut}>Sign Out</button>
         </div>

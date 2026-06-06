@@ -11,3 +11,4 @@
 .addBtn { padding: 10px 16px; background: var(--blue); color: white; border-radius: 8px; font-weight: 600; }
 .addBtn:disabled { opacity: 0.5; }
 .signOutBtn { padding: 12px; background: var(--gray-100); border-radius: var(--radius); color: var(--red); font-weight: 600; width: 100%; }
+.importBtn { padding: 12px; background: var(--blue-light); border-radius: var(--radius); color: var(--blue); font-weight: 600; width: 100%; }
