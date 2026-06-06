@@ -18,7 +18,10 @@ function EditableList({ items, onSave, label }) {
 
   const add = async () => {
     if (!newItem.trim() || list.includes(newItem.trim())) return
-    const updated = [...list, newItem.trim()]
+    const otherIdx = list.indexOf('Other')
+    const updated = otherIdx !== -1
+      ? [...list.slice(0, otherIdx), newItem.trim(), ...list.slice(otherIdx)]
+      : [...list, newItem.trim()]
     setList(updated)
     setNewItem('')
     setSaving(true)
