@@ -5,6 +5,16 @@ import styles from './AuthScreen.module.css'
 export default function AuthScreen() {
   const { signIn, sheetId, saveSheetId } = useAuth()
   const [inputId, setInputId] = useState(sheetId)
+  const [signInError, setSignInError] = useState('')
+
+  const handleSignIn = () => {
+    try {
+      signIn()
+      setSignInError('')
+    } catch (e) {
+      setSignInError(e.message)
+    }
+  }
 
   return (
     <div className={styles.screen}>
@@ -36,9 +46,12 @@ export default function AuthScreen() {
         )}
 
         {sheetId && (
-          <button className={styles.signInBtn} onClick={signIn}>
-            Sign in with Google
-          </button>
+          <>
+            <button className={styles.signInBtn} onClick={handleSignIn}>
+              Sign in with Google
+            </button>
+            {signInError && <p style={{ color: 'red', marginTop: 12, fontSize: '0.85rem' }}>{signInError}</p>}
+          </>
         )}
       </div>
     </div>

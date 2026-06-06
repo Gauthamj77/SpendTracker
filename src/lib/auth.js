@@ -32,7 +32,10 @@ export function initTokenClient(onTokenResponse) {
 }
 
 export function requestToken(prompt = '') {
-  if (!_tokenClient) throw new Error('Token client not initialized')
+  if (!_tokenClient) {
+    if (prompt === 'none') return  // silent refresh - fail quietly
+    throw new Error('Google Sign-In could not load. Please disable any ad blockers and try again, or use a different browser.')
+  }
   _tokenClient.requestAccessToken({ prompt })
 }
 
