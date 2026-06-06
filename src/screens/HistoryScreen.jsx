@@ -119,7 +119,6 @@ export default function HistoryScreen() {
                 {entry.Type === 'Income' ? '+' : '-'}&#8377;{formatAmount(entry.Amount)}
               </span>
               <span className={styles.pm}>{entry.PaymentMethod}</span>
-              <button className={styles.deleteBtn} onClick={e => { e.stopPropagation(); setDeleteIndex(i) }}>&#128465;</button>
             </div>
           </div>
         ))}
@@ -134,13 +133,24 @@ export default function HistoryScreen() {
           </div>
           <div className={styles.editBody}>
             <EntryForm values={editValues} onChange={handleEditChange} />
+            <button
+              className={styles.deleteEntryBtn}
+              onClick={() => { setEditingIndex(null); setDeleteIndex(editingIndex) }}
+            >
+              Delete Entry
+            </button>
           </div>
         </div>
       )}
 
       {deleteIndex !== null && (
         <ConfirmDialog
-          message="Delete this entry?"
+          message={(() => {
+            const entry = filtered[deleteIndex]
+            const name = entry?.Notes || entry?.Category || 'this entry'
+            const amount = entry ? `₹${formatAmount(entry.Amount)}` : ''
+            return `Delete "${name}" ${amount}?`
+          })()}
           onConfirm={handleDelete}
           onCancel={() => setDeleteIndex(null)}
         />
