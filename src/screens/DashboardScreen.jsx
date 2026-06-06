@@ -53,7 +53,10 @@ export default function DashboardScreen() {
       const day = (e.Timestamp || '').slice(0, 10)
       map[day] = (map[day] || 0) + parseFloat(e.Amount || 0)
     })
-    return Object.entries(map).sort().map(([date, amount]) => ({ date: date.slice(5), amount: Math.round(amount) }))
+    return Object.entries(map).sort().map(([date, amount]) => ({
+      date: formatDayLabel(date),
+      amount: Math.round(amount)
+    }))
   }, [entries])
 
   const weeklyData = useMemo(() => {
@@ -142,7 +145,12 @@ export default function DashboardScreen() {
                 <BarChart data={dailyData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
                   <XAxis dataKey="date" tick={{ fontSize: 10 }} />
                   <YAxis tick={{ fontSize: 10 }} />
-                  <Tooltip formatter={v => `₹${formatAmount(v)}`} />
+                  <Tooltip content={({ active, payload, label }) => active && payload?.length ? (
+                    <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, padding: '6px 12px', fontSize: '0.85rem' }}>
+                      <p style={{ color: '#4b5563', marginBottom: 2 }}>{label}</p>
+                      <p style={{ color: '#2563eb', fontWeight: 700 }}>₹{formatAmount(payload[0].value)}</p>
+                    </div>
+                  ) : null} />
                   <Bar dataKey="amount" fill="#2563eb" radius={[4,4,0,0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -182,4 +190,11 @@ function getWeekLabel(isoTimestamp) {
   const monday = new Date(d)
   monday.setDate(d.getDate() - ((day + 6) % 7))
   return monday.toISOString().slice(5, 10)
+}
+
+function formatDayLabel(isoDate) {
+  const d = new Date(isoDate + 'T00:00:00')
+  const dd = String(d.getDate()).padStart(2, '0')
+  const month = d.toLocaleString('en-IN', { month: 'long' })
+  return `${dd} ${month}`
 }
