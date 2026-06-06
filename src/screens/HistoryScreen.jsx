@@ -23,7 +23,9 @@ export default function HistoryScreen() {
     fetchAll().then(setEntries).catch(() => {})
   }, [])
 
-  const filtered = filterEntries(entries, filters).slice().reverse()
+  const filtered = filterEntries(entries, filters)
+    .map((e, i) => ({ ...e, _origIdx: i }))
+    .reverse()
 
   const openEdit = (entry, i) => {
     const [date, time] = (entry.Timestamp || '').split('T')
@@ -34,7 +36,8 @@ export default function HistoryScreen() {
       time: (time || '').slice(0, 5),
       category: entry.Category,
       paymentMethod: entry.PaymentMethod,
-      notes: entry.Notes
+      notes: entry.Notes,
+      _origIdx: entry._origIdx
     })
     setEditingIndex(i)
   }
@@ -44,7 +47,7 @@ export default function HistoryScreen() {
   }, [])
 
   const handleEditSave = async () => {
-    const originalIndex = entries.length - 1 - editingIndex
+    const originalIndex = editValues._origIdx
     const timestamp = `${editValues.date}T${editValues.time}:00`
     try {
       const updated = await editEntry(originalIndex, { ...editValues, Timestamp: timestamp }, entries[originalIndex])
@@ -59,7 +62,7 @@ export default function HistoryScreen() {
   }
 
   const handleDelete = async () => {
-    const originalIndex = entries.length - 1 - deleteIndex
+    const originalIndex = filtered[deleteIndex]._origIdx
     try {
       await removeEntry(originalIndex)
       setEntries(entries.filter((_, i) => i !== originalIndex))

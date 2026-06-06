@@ -20,7 +20,7 @@ function entryToRow(entry) {
 
 export async function appendSpend(sheetId, entry) {
   const res = await fetch(
-    `${BASE}/${sheetId}/values/Spends!A:I:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,
+    `${BASE}/${sheetId}/values/${encodeURIComponent('Spends!A:I')}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,
     { method: 'POST', headers: headers(), body: JSON.stringify({ values: [entryToRow(entry)] }) }
   )
   if (!res.ok) throw new Error(`Sheets append failed: ${res.status}`)
@@ -28,7 +28,7 @@ export async function appendSpend(sheetId, entry) {
 }
 
 export async function readAllSpends(sheetId) {
-  const res = await fetch(`${BASE}/${sheetId}/values/Spends!A2:I`, { headers: headers() })
+  const res = await fetch(`${BASE}/${sheetId}/values/${encodeURIComponent('Spends!A2:I')}`, { headers: headers() })
   if (!res.ok) throw new Error(`Sheets read failed: ${res.status}`)
   const data = await res.json()
   return (data.values || []).map(rowToEntry)
@@ -37,7 +37,7 @@ export async function readAllSpends(sheetId) {
 export async function updateSpend(sheetId, rowIndex, entry) {
   const sheetRow = rowIndex + 2
   const res = await fetch(
-    `${BASE}/${sheetId}/values/Spends!A${sheetRow}:I${sheetRow}?valueInputOption=RAW`,
+    `${BASE}/${sheetId}/values/${encodeURIComponent('Spends!A' + sheetRow + ':I' + sheetRow)}?valueInputOption=RAW`,
     { method: 'PUT', headers: headers(), body: JSON.stringify({ values: [entryToRow(entry)] }) }
   )
   if (!res.ok) throw new Error(`Sheets update failed: ${res.status}`)
@@ -65,7 +65,7 @@ export async function deleteSpend(sheetId, sheetNumericId, rowIndex) {
 }
 
 export async function readConfig(sheetId) {
-  const res = await fetch(`${BASE}/${sheetId}/values/Config!A1:Z2`, { headers: headers() })
+  const res = await fetch(`${BASE}/${sheetId}/values/${encodeURIComponent('Config!A1:Z2')}`, { headers: headers() })
   if (!res.ok) throw new Error(`Config read failed: ${res.status}`)
   const data = await res.json()
   const rows = data.values || []
@@ -76,7 +76,7 @@ export async function readConfig(sheetId) {
 
 export async function writeConfig(sheetId, categories, paymentMethods) {
   const res = await fetch(
-    `${BASE}/${sheetId}/values/Config!A1:Z2?valueInputOption=RAW`,
+    `${BASE}/${sheetId}/values/${encodeURIComponent('Config!A1:Z2')}?valueInputOption=RAW`,
     { method: 'PUT', headers: headers(), body: JSON.stringify({ values: [categories, paymentMethods] }) }
   )
   if (!res.ok) throw new Error(`Config write failed: ${res.status}`)

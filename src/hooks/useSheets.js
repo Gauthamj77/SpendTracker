@@ -62,8 +62,17 @@ export function useSheets() {
   }, [sheetId])
 
   const removeEntry = useCallback(async (rowIndex) => {
-    const numericId = await getSpendSheetNumericId(sheetId)
-    await deleteSpend(sheetId, numericId, rowIndex)
+    setLoading(true)
+    setError(null)
+    try {
+      const numericId = await getSpendSheetNumericId(sheetId)
+      await deleteSpend(sheetId, numericId, rowIndex)
+    } catch (e) {
+      setError(e.message)
+      throw e
+    } finally {
+      setLoading(false)
+    }
   }, [sheetId])
 
   return { addEntry, fetchAll, editEntry, removeEntry, loading, error }
