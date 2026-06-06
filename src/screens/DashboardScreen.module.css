@@ -14,5 +14,6 @@
 .cardSpend { font-size: 1.4rem; font-weight: 700; color: var(--red); }
 .cardIncome { font-size: 1.4rem; font-weight: 700; color: var(--green); }
 .chart { background: #fff; border-radius: var(--radius); padding: 16px; border: 1px solid var(--gray-200); }
-.chartTitle { font-size: 0.875rem; font-weight: 700; margin-bottom: 12px; color: var(--gray-600); }
+.chartTitle { font-size: 0.875rem; font-weight: 700; margin-bottom: 4px; color: var(--gray-600); }
+.chartSub { font-size: 0.75rem; color: var(--gray-400); margin-bottom: 12px; }
 .empty { text-align: center; padding: 40px; color: var(--gray-400); }
