@@ -32,21 +32,14 @@ export function AuthProvider({ children }) {
     const interval = setInterval(() => {
       if (typeof google !== 'undefined' && google.accounts) {
         clearInterval(interval)
-        clearTimeout(timeout)
         initTokenClient(onTokenResponse)
-        // Only attempt silent refresh if user has previously signed in
-        // (indicated by a stored sheet ID - rough proxy for returning user)
-        if (localStorage.getItem('sheetId')) {
-          requestToken('none')
-        } else {
-          setLoading(false)
-        }
+        setLoading(false)
       }
     }, 100)
     const timeout = setTimeout(() => {
       clearInterval(interval)
       setLoading(false)
-    }, 3000)
+    }, 5000)
     return () => {
       clearInterval(interval)
       clearTimeout(timeout)
