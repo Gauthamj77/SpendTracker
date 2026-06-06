@@ -187,13 +187,3 @@ src/
   main.jsx                  Entry point
 ```
 
----
-
-## Users
-
-| Name | Email | Filter label |
-|---|---|---|
-| Gautham | gautham77bl@gmail.com | G |
-| Maria | mariatbenedict726@gmail.com | M |
-
-The dashboard and history filters identify users by the first letter of their email address.
