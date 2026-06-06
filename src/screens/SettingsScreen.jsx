@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useConfig } from '../hooks/useConfig.js'
 import { useAuth } from '../hooks/useAuth.js'
@@ -10,6 +10,11 @@ function EditableList({ items, onSave, label }) {
   const [newItem, setNewItem] = useState('')
   const [saving, setSaving] = useState(false)
 
+  // Sync when items load from the sheet (they may be empty on first render)
+  useEffect(() => {
+    if (items.length > 0) setList(items)
+  }, [items])
+
   const add = async () => {
     if (!newItem.trim() || list.includes(newItem.trim())) return
     const updated = [...list, newItem.trim()]
@@ -20,7 +25,7 @@ function EditableList({ items, onSave, label }) {
     setSaving(false)
   }
 
-  const rename = async (index, value) => {
+  const rename = (index, value) => {
     const updated = list.map((item, i) => i === index ? value : item)
     setList(updated)
   }
@@ -44,7 +49,7 @@ function EditableList({ items, onSave, label }) {
       <div className={styles.addRow}>
         <input
           className={styles.addInput}
-          placeholder={`New ${label.slice(0, -1)}`}
+          placeholder={`New ${label === 'Categories' ? 'Category' : 'Payment Method'}`}
           value={newItem}
           onChange={e => setNewItem(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && add()}
@@ -57,9 +62,13 @@ function EditableList({ items, onSave, label }) {
 
 export default function SettingsScreen() {
   const navigate = useNavigate()
-  const { categories, paymentMethods, saveCategories, savePaymentMethods } = useConfig()
+  const { categories, paymentMethods, loaded, loadConfig, saveCategories, savePaymentMethods } = useConfig()
   const { signOut } = useAuth()
   const [toast, setToast] = useState(null)
+
+  useEffect(() => {
+    if (!loaded) loadConfig()
+  }, [loaded, loadConfig])
 
   return (
     <div className={styles.screen}>
@@ -69,22 +78,28 @@ export default function SettingsScreen() {
       </div>
 
       <div className={styles.body}>
-        <EditableList
-          label="Categories"
-          items={categories}
-          onSave={async (list) => {
-            await saveCategories(list)
-            setToast({ message: 'Saved', type: 'success' })
-          }}
-        />
-        <EditableList
-          label="Payment Methods"
-          items={paymentMethods}
-          onSave={async (list) => {
-            await savePaymentMethods(list)
-            setToast({ message: 'Saved', type: 'success' })
-          }}
-        />
+        {!loaded ? (
+          <p style={{ color: 'var(--gray-400)', textAlign: 'center', padding: 24 }}>Loading...</p>
+        ) : (
+          <>
+            <EditableList
+              label="Categories"
+              items={categories}
+              onSave={async (list) => {
+                await saveCategories(list)
+                setToast({ message: 'Saved', type: 'success' })
+              }}
+            />
+            <EditableList
+              label="Payment Methods"
+              items={paymentMethods}
+              onSave={async (list) => {
+                await savePaymentMethods(list)
+                setToast({ message: 'Saved', type: 'success' })
+              }}
+            />
+          </>
+        )}
 
         <div className={styles.section}>
           <h3 className={styles.sectionTitle}>Account</h3>
