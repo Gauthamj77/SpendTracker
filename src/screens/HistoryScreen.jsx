@@ -25,7 +25,7 @@ export default function HistoryScreen() {
 
   const filtered = filterEntries(entries, filters)
     .map((e, i) => ({ ...e, _origIdx: i }))
-    .reverse()
+    .sort((a, b) => (b.Timestamp || '').localeCompare(a.Timestamp || ''))
 
   const openEdit = (entry, i) => {
     const [date, time] = (entry.Timestamp || '').split('T')
