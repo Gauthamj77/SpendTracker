@@ -10,7 +10,7 @@ A shared spend tracking Progressive Web App (PWA) for two people. Built with Rea
 
 - Numpad-first entry - open the app, type the amount, done in under 5 seconds
 - Shared data - both users write to the same Google Sheet in real time
-- Dashboard with charts - category breakdown, daily spend, spend vs income
+- Dashboard with charts - category breakdown, daily spend, running balance, top 5 spends, category trend, weekday spending pattern
 - History - full list with filters by person, category, type and date range
 - Edit and delete any entry
 - Configurable categories and payment methods
@@ -79,6 +79,8 @@ npm run dev
 ```
 
 The app runs at `http://localhost:5173/SpendTracker/`.
+
+> **Note:** For Google Sign-In to work locally, add `http://localhost:5173` as an authorized JavaScript origin in your Google Cloud OAuth Client ID settings.
 
 ### Other commands
 
