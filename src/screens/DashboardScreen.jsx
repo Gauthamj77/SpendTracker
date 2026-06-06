@@ -115,7 +115,7 @@ export default function DashboardScreen() {
           {categoryData.length > 0 && (
             <div className={styles.chart}>
               <h3 className={styles.chartTitle}>Category Breakdown</h3>
-              <ResponsiveContainer width="100%" height={220}>
+              <ResponsiveContainer width="100%" height={260}>
                 <PieChart>
                   <Pie
                     data={categoryData}
@@ -125,11 +125,11 @@ export default function DashboardScreen() {
                     outerRadius={85}
                     dataKey="value"
                     label={({ name, percent }) => `${name} ${(percent*100).toFixed(0)}%`}
-                    labelLine={false}
+                    labelLine={true}
                   >
                     {categoryData.map((entry, i) => <Cell key={entry.name} fill={COLORS[i % COLORS.length]} />)}
                   </Pie>
-                  <Tooltip formatter={v => `&#8377;${formatAmount(v)}`} />
+                  <Tooltip formatter={v => `₹${formatAmount(v)}`} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -142,7 +142,7 @@ export default function DashboardScreen() {
                 <BarChart data={dailyData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
                   <XAxis dataKey="date" tick={{ fontSize: 10 }} />
                   <YAxis tick={{ fontSize: 10 }} />
-                  <Tooltip formatter={v => `&#8377;${formatAmount(v)}`} />
+                  <Tooltip formatter={v => `₹${formatAmount(v)}`} />
                   <Bar dataKey="amount" fill="#2563eb" radius={[4,4,0,0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -156,7 +156,7 @@ export default function DashboardScreen() {
                 <BarChart data={weeklyData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
                   <XAxis dataKey="week" tick={{ fontSize: 10 }} />
                   <YAxis tick={{ fontSize: 10 }} />
-                  <Tooltip formatter={v => `&#8377;${formatAmount(v)}`} />
+                  <Tooltip formatter={v => `₹${formatAmount(v)}`} />
                   <Legend />
                   <Bar dataKey="Spend" fill="#dc2626" radius={[4,4,0,0]} />
                   <Bar dataKey="Income" fill="#16a34a" radius={[4,4,0,0]} />
