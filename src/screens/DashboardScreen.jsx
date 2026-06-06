@@ -81,9 +81,13 @@ export default function DashboardScreen() {
       </div>
 
       <div className={styles.personFilter}>
-        {['both','A','B'].map(p => (
-          <button key={p} className={person === p ? styles.activeFilter : styles.filter} onClick={() => setPerson(p)}>
-            {p === 'both' ? 'Both' : `Person ${p}`}
+        {[
+          { value: 'both', label: 'Both' },
+          { value: 'G', label: 'Gautham' },
+          { value: 'M', label: 'Maria' }
+        ].map(p => (
+          <button key={p.value} className={person === p.value ? styles.activeFilter : styles.filter} onClick={() => setPerson(p.value)}>
+            {p.label}
           </button>
         ))}
         {['both','Spend','Income'].map(t => (
