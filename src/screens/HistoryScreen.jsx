@@ -4,7 +4,7 @@ import { useConfig } from '../hooks/useConfig.js'
 import EntryForm from '../components/EntryForm.jsx'
 import ConfirmDialog from '../components/ConfirmDialog.jsx'
 import Toast from '../components/Toast.jsx'
-import { formatDate, formatAmount, getInitials, filterEntries } from '../lib/utils.js'
+import { formatDate, formatAmount, getDisplayName, filterEntries } from '../lib/utils.js'
 import { Link } from 'react-router-dom'
 import styles from './HistoryScreen.module.css'
 
@@ -83,6 +83,11 @@ export default function HistoryScreen() {
       <div className={styles.filters}>
         <input type="date" className={styles.filterInput} value={filters.dateFrom} onChange={e => setFilters(f => ({...f, dateFrom: e.target.value}))} />
         <input type="date" className={styles.filterInput} value={filters.dateTo} onChange={e => setFilters(f => ({...f, dateTo: e.target.value}))} />
+        <select className={styles.filterInput} value={filters.person} onChange={e => setFilters(f => ({...f, person: e.target.value}))}>
+          <option value="both">Everyone</option>
+          <option value="G">Gautham</option>
+          <option value="M">Maria</option>
+        </select>
         <select className={styles.filterInput} value={filters.type} onChange={e => setFilters(f => ({...f, type: e.target.value}))}>
           <option value="both">All types</option>
           <option value="Spend">Spend</option>
@@ -100,9 +105,8 @@ export default function HistoryScreen() {
         {filtered.map((entry, i) => (
           <div key={entry.ID || i} className={styles.row} onClick={() => openEdit(entry, i)}>
             <div className={styles.rowLeft}>
-              <span className={styles.category}>{entry.Category}</span>
-              <span className={styles.meta}>{formatDate(entry.Timestamp)} - {getInitials(entry.AddedBy)}</span>
-              {entry.Notes && <span className={styles.notes}>{entry.Notes}</span>}
+              <span className={styles.category}>{entry.Notes || entry.Category}</span>
+              <span className={styles.meta}>{entry.Notes ? entry.Category + ' · ' : ''}{formatDate(entry.Timestamp)} · {getDisplayName(entry.AddedBy)}</span>
             </div>
             <div className={styles.rowRight}>
               <span className={entry.Type === 'Income' ? styles.income : styles.spend}>

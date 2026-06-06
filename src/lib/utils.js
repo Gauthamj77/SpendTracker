@@ -2,6 +2,15 @@ export function generateId() {
   return crypto.randomUUID().split('-')[0]
 }
 
+const EMAIL_TO_NAME = {
+  'gautham77bl@gmail.com': 'Gautham',
+  'mariatbenedict726@gmail.com': 'Maria'
+}
+
+export function getDisplayName(email) {
+  return EMAIL_TO_NAME[email] || email?.split('@')[0] || 'Unknown'
+}
+
 export function toISOLocal(date = new Date()) {
   const offset = date.getTimezoneOffset()
   const local = new Date(date.getTime() - offset * 60000)
