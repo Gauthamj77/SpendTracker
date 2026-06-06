@@ -81,8 +81,14 @@ export default function HistoryScreen() {
       </div>
 
       <div className={styles.filters}>
-        <input type="date" className={styles.filterInput} value={filters.dateFrom} onChange={e => setFilters(f => ({...f, dateFrom: e.target.value}))} />
-        <input type="date" className={styles.filterInput} value={filters.dateTo} onChange={e => setFilters(f => ({...f, dateTo: e.target.value}))} />
+        <div className={styles.dateFilter}>
+          <span className={styles.dateLabel}>From</span>
+          <input type="date" className={styles.filterInput} value={filters.dateFrom} onChange={e => setFilters(f => ({...f, dateFrom: e.target.value}))} />
+        </div>
+        <div className={styles.dateFilter}>
+          <span className={styles.dateLabel}>To</span>
+          <input type="date" className={styles.filterInput} value={filters.dateTo} onChange={e => setFilters(f => ({...f, dateTo: e.target.value}))} />
+        </div>
         <select className={styles.filterInput} value={filters.person} onChange={e => setFilters(f => ({...f, person: e.target.value}))}>
           <option value="both">Everyone</option>
           <option value="G">Gautham</option>
