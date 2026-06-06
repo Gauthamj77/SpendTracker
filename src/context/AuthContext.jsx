@@ -34,13 +34,19 @@ export function AuthProvider({ children }) {
         clearInterval(interval)
         clearTimeout(timeout)
         initTokenClient(onTokenResponse)
-        requestToken('none')
+        // Only attempt silent refresh if user has previously signed in
+        // (indicated by a stored sheet ID - rough proxy for returning user)
+        if (localStorage.getItem('sheetId')) {
+          requestToken('none')
+        } else {
+          setLoading(false)
+        }
       }
     }, 100)
     const timeout = setTimeout(() => {
       clearInterval(interval)
       setLoading(false)
-    }, 10000)
+    }, 3000)
     return () => {
       clearInterval(interval)
       clearTimeout(timeout)
