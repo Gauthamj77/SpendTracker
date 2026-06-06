@@ -18,7 +18,7 @@ export function clearAccessToken() {
 export function initTokenClient(onTokenResponse) {
   _tokenClient = google.accounts.oauth2.initTokenClient({
     client_id: CLIENT_ID,
-    scope: 'https://www.googleapis.com/auth/spreadsheets',
+    scope: 'https://www.googleapis.com/auth/spreadsheets email profile',
     callback: (response) => {
       if (response.error) {
         onTokenResponse(null, response.error)

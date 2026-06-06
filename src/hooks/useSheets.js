@@ -31,7 +31,7 @@ export function useSheets() {
     } finally {
       setLoading(false)
     }
-  }, [sheetId, accessToken])
+  }, [sheetId, userEmail])
 
   const fetchAll = useCallback(async () => {
     setLoading(true)
