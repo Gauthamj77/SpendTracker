@@ -38,8 +38,11 @@ export function AuthProvider({ children }) {
     const interval = setInterval(() => {
       if (typeof google !== 'undefined' && google.accounts) {
         clearInterval(interval)
+        clearTimeout(timeout)
         initTokenClient(onTokenResponse)
-        setLoading(false)
+        // Attempt silent sign-in - if user has previously granted consent,
+        // this succeeds without any popup and skips the sign-in screen
+        requestToken('none')
       }
     }, 100)
     const timeout = setTimeout(() => {
