@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useConfig } from '../hooks/useConfig.js'
 import { useAuth } from '../hooks/useAuth.js'
@@ -9,6 +9,7 @@ function EditableList({ items, onSave, label }) {
   const [list, setList] = useState(items)
   const [newItem, setNewItem] = useState('')
   const [saving, setSaving] = useState(false)
+  const dirtyRef = useRef(false)
 
   // Sync when items load from the sheet (they may be empty on first render)
   useEffect(() => {
@@ -28,9 +29,12 @@ function EditableList({ items, onSave, label }) {
   const rename = (index, value) => {
     const updated = list.map((item, i) => i === index ? value : item)
     setList(updated)
+    dirtyRef.current = true
   }
 
   const handleBlur = async () => {
+    if (!dirtyRef.current) return
+    dirtyRef.current = false
     await onSave(list)
   }
 

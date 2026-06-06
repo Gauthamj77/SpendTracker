@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect, useCallback } from 'react'
+import { createContext, useState, useEffect, useCallback, useRef } from 'react'
 import { initTokenClient, requestToken, signOut as authSignOut } from '../lib/auth.js'
 
 export const AuthContext = createContext(null)
@@ -8,6 +8,7 @@ export function AuthProvider({ children }) {
   const [userEmail, setUserEmail] = useState('')
   const [sheetId, setSheetIdState] = useState('102DPBAyklQVt_YGNacO0LTC9iE88AxK-xxqvIjyq3js')
   const [loading, setLoading] = useState(true)
+  const refreshTimerRef = useRef(null)
 
   const onTokenResponse = useCallback(async (token, error) => {
     if (!error && token) {
@@ -24,6 +25,11 @@ export function AuthProvider({ children }) {
       } catch {
         // non-fatal, email stays empty
       }
+      // Schedule token refresh before it expires (tokens last 3600s, refresh at 3300s)
+      if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current)
+      refreshTimerRef.current = setTimeout(() => {
+        requestToken('none')
+      }, 3300 * 1000)
     }
     setLoading(false)
   }, [])
@@ -43,6 +49,7 @@ export function AuthProvider({ children }) {
     return () => {
       clearInterval(interval)
       clearTimeout(timeout)
+      if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current)
     }
   }, [onTokenResponse])
 
@@ -53,6 +60,8 @@ export function AuthProvider({ children }) {
   const signOut = useCallback(() => {
     authSignOut()
     setAccessToken(null)
+    setUserEmail('')
+    if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current)
   }, [])
 
   const saveSheetId = useCallback((id) => {

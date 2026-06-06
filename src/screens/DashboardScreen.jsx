@@ -3,6 +3,7 @@ import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveCo
 import { useSheets } from '../hooks/useSheets.js'
 import { filterEntries, getDateRange, formatAmount } from '../lib/utils.js'
 import { Link } from 'react-router-dom'
+import Toast from '../components/Toast.jsx'
 import styles from './DashboardScreen.module.css'
 
 const COLORS = ['#2563eb','#16a34a','#dc2626','#d97706','#7c3aed','#0891b2','#be185d','#65a30d']
@@ -15,9 +16,10 @@ export default function DashboardScreen() {
   const [preset, setPreset] = useState('thisMonth')
   const [person, setPerson] = useState('both')
   const [type, setType] = useState('both')
+  const [toast, setToast] = useState(null)
 
   useEffect(() => {
-    fetchAll().then(setAllEntries).catch(() => {})
+    fetchAll().then(setAllEntries).catch(() => setToast({ message: 'Failed to load entries. Please refresh.', type: 'error' }))
   }, [])
 
   const { dateFrom, dateTo } = getDateRange(preset)
@@ -168,6 +170,7 @@ export default function DashboardScreen() {
           )}
         </div>
       )}
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   )
 }

@@ -40,7 +40,12 @@ export default function NumpadScreen() {
 
       <div className={styles.display}>
         <span className={styles.currency}>₹</span>
-        <span className={styles.amount}>{parseFloat(amount).toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
+        <span className={styles.amount}>
+          {amount.endsWith('.')
+            ? parseFloat(amount).toLocaleString('en-IN', { maximumFractionDigits: 2 }) + '.'
+            : parseFloat(amount).toLocaleString('en-IN', { maximumFractionDigits: 2 })
+          }
+        </span>
       </div>
 
       <div className={styles.numpad}>

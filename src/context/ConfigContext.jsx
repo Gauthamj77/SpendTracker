@@ -9,13 +9,19 @@ export function ConfigProvider({ children }) {
   const [categories, setCategories] = useState([])
   const [paymentMethods, setPaymentMethods] = useState([])
   const [loaded, setLoaded] = useState(false)
+  const [error, setError] = useState(null)
 
   const loadConfig = useCallback(async () => {
     if (!sheetId) return
-    const config = await readConfig(sheetId)
-    setCategories(config.categories)
-    setPaymentMethods(config.paymentMethods)
-    setLoaded(true)
+    try {
+      const config = await readConfig(sheetId)
+      setCategories(config.categories)
+      setPaymentMethods(config.paymentMethods)
+      setLoaded(true)
+    } catch (e) {
+      setError(e.message)
+      setLoaded(true)  // stop the spinner even on error
+    }
   }, [sheetId])
 
   const saveCategories = useCallback(async (newCategories) => {
@@ -29,7 +35,7 @@ export function ConfigProvider({ children }) {
   }, [sheetId, categories])
 
   return (
-    <ConfigContext.Provider value={{ categories, paymentMethods, loaded, loadConfig, saveCategories, savePaymentMethods }}>
+    <ConfigContext.Provider value={{ categories, paymentMethods, loaded, loadConfig, saveCategories, savePaymentMethods, error }}>
       {children}
     </ConfigContext.Provider>
   )

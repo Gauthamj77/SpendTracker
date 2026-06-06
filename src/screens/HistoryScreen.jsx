@@ -20,7 +20,7 @@ export default function HistoryScreen() {
 
   useEffect(() => {
     if (!loaded) loadConfig()
-    fetchAll().then(setEntries).catch(() => {})
+    fetchAll().then(setEntries).catch(() => setToast({ message: 'Failed to load entries. Please refresh.', type: 'error' }))
   }, [])
 
   const filtered = filterEntries(entries, filters)
