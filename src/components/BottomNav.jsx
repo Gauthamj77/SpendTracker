@@ -10,6 +10,9 @@ export default function BottomNav() {
       <NavLink to="/dashboard" className={({ isActive }) => isActive ? styles.active : styles.link}>
         <span>📊</span><small>Dashboard</small>
       </NavLink>
+      <NavLink to="/budget" className={({ isActive }) => isActive ? styles.active : styles.link}>
+        <span>💰</span><small>Budget</small>
+      </NavLink>
       <NavLink to="/history" className={({ isActive }) => isActive ? styles.active : styles.link}>
         <span>📋</span><small>History</small>
       </NavLink>

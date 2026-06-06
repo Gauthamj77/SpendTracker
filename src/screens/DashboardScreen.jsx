@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import { useSheets } from '../hooks/useSheets.js'
+import { useConfig } from '../hooks/useConfig.js'
 import { filterEntries, getDateRange, formatAmount, getDisplayName } from '../lib/utils.js'
 import { Link } from 'react-router-dom'
 import Toast from '../components/Toast.jsx'
@@ -22,12 +23,14 @@ const ChartTooltip = ({ active, payload, label, color = '#2563eb' }) => {
 
 export default function DashboardScreen() {
   const { fetchAll, loading } = useSheets()
+  const { gauthamBudgets, mariaBudgets, categories, loaded, loadConfig } = useConfig()
   const [allEntries, setAllEntries] = useState([])
   const [preset, setPreset] = useState('thisMonth')
   const [person, setPerson] = useState('both')
   const [toast, setToast] = useState(null)
 
   useEffect(() => {
+    if (!loaded) loadConfig()
     fetchAll().then(setAllEntries).catch(() => setToast({ message: 'Failed to load entries. Please refresh.', type: 'error' }))
   }, [])
 
@@ -43,6 +46,20 @@ export default function DashboardScreen() {
     spendEntries.reduce((s, e) => s + parseFloat(e.Amount || 0), 0),
     [spendEntries]
   )
+
+  // Budget remaining for this month (only shown for thisMonth preset)
+  const budgetRemaining = useMemo(() => {
+    if (preset !== 'thisMonth') return null
+    const { dateFrom: mFrom, dateTo: mTo } = getDateRange('thisMonth')
+    const monthSpend = filterEntries(allEntries, { dateFrom: mFrom, dateTo: mTo, person, type: 'Spend' })
+    const budgets = person === 'both'
+      ? Object.fromEntries(categories.map(c => [c, (gauthamBudgets[c] || 0) + (mariaBudgets[c] || 0)]))
+      : person === 'G' ? gauthamBudgets : mariaBudgets
+    const totalBudget = categories.reduce((s, c) => s + (budgets[c] || 0), 0)
+    if (totalBudget === 0) return null
+    const spent = monthSpend.reduce((s, e) => s + parseFloat(e.Amount || 0), 0)
+    return { total: totalBudget, spent, remaining: totalBudget - spent }
+  }, [allEntries, categories, gauthamBudgets, mariaBudgets, person, preset])
 
   // Daily average: total / days elapsed in the period
   const dailyAverage = useMemo(() => {
@@ -177,6 +194,17 @@ export default function DashboardScreen() {
               <span className={styles.cardLabel}>Daily Average</span>
               <span className={styles.cardSpend}>₹{formatAmount(dailyAverage)}</span>
             </div>
+            {budgetRemaining && (
+              <div className={styles.card} style={{ gridColumn: '1 / -1' }}>
+                <span className={styles.cardLabel}>Budget Remaining This Month</span>
+                <span className={budgetRemaining.remaining < 0 ? styles.cardSpend : styles.cardIncome}>
+                  {budgetRemaining.remaining < 0 ? '-' : ''}₹{formatAmount(Math.abs(budgetRemaining.remaining))}
+                  <span style={{ fontSize: '0.75rem', fontWeight: 400, color: 'var(--gray-400)', marginLeft: 8 }}>
+                    of ₹{formatAmount(budgetRemaining.total)}
+                  </span>
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Category Breakdown */}

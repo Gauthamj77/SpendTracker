@@ -65,19 +65,26 @@ export async function deleteSpend(sheetId, sheetNumericId, rowIndex) {
 }
 
 export async function readConfig(sheetId) {
-  const res = await fetch(`${BASE}/${sheetId}/values/${encodeURIComponent('Config!A1:Z2')}`, { headers: headers() })
+  const res = await fetch(`${BASE}/${sheetId}/values/${encodeURIComponent('Config!A1:Z4')}`, { headers: headers() })
   if (!res.ok) throw new Error(`Config read failed: ${res.status}`)
   const data = await res.json()
   const rows = data.values || []
   const categories = rows[0] ? rows[0].filter(Boolean) : ['Food','Travel','Shopping','Bills','Health','Entertainment','Other']
   const paymentMethods = rows[1] ? rows[1].filter(Boolean) : ['Cash','UPI','Card','Net Banking']
-  return { categories, paymentMethods }
+  // Row 3 = Gautham budgets, Row 4 = Maria budgets (aligned to categories)
+  const gauthamBudgets = {}
+  const mariaBudgets = {}
+  if (rows[2]) rows[2].forEach((v, i) => { if (categories[i] && v) gauthamBudgets[categories[i]] = parseFloat(v) || 0 })
+  if (rows[3]) rows[3].forEach((v, i) => { if (categories[i] && v) mariaBudgets[categories[i]] = parseFloat(v) || 0 })
+  return { categories, paymentMethods, gauthamBudgets, mariaBudgets }
 }
 
-export async function writeConfig(sheetId, categories, paymentMethods) {
+export async function writeConfig(sheetId, categories, paymentMethods, gauthamBudgets = {}, mariaBudgets = {}) {
+  const gauthamRow = categories.map(c => gauthamBudgets[c] ?? '')
+  const mariaRow = categories.map(c => mariaBudgets[c] ?? '')
   const res = await fetch(
-    `${BASE}/${sheetId}/values/${encodeURIComponent('Config!A1:Z2')}?valueInputOption=RAW`,
-    { method: 'PUT', headers: headers(), body: JSON.stringify({ values: [categories, paymentMethods] }) }
+    `${BASE}/${sheetId}/values/${encodeURIComponent('Config!A1:Z4')}?valueInputOption=RAW`,
+    { method: 'PUT', headers: headers(), body: JSON.stringify({ values: [categories, paymentMethods, gauthamRow, mariaRow] }) }
   )
   if (!res.ok) throw new Error(`Config write failed: ${res.status}`)
   return res.json()

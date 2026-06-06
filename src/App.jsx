@@ -7,6 +7,7 @@ import NumpadScreen from './screens/NumpadScreen.jsx'
 import DashboardScreen from './screens/DashboardScreen.jsx'
 import HistoryScreen from './screens/HistoryScreen.jsx'
 import DetailScreen from './screens/DetailScreen.jsx'
+import BudgetScreen from './screens/BudgetScreen.jsx'
 import SettingsScreen from './screens/SettingsScreen.jsx'
 import BottomNav from './components/BottomNav.jsx'
 
@@ -27,6 +28,7 @@ function AppRoutes() {
           <Route path="/" element={<NumpadScreen />} />
           <Route path="/dashboard" element={<DashboardScreen />} />
           <Route path="/history" element={<HistoryScreen />} />
+          <Route path="/budget" element={<BudgetScreen />} />
           <Route path="/detail" element={<DetailScreen />} />
           <Route path="/settings" element={<SettingsScreen />} />
           <Route path="*" element={<Navigate to="/" replace />} />
