@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
+import { PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, LabelList } from 'recharts'
 import { useSheets } from '../hooks/useSheets.js'
 import { useConfig } from '../hooks/useConfig.js'
 import { filterEntries, getDateRange, formatAmount, getDisplayName } from '../lib/utils.js'
@@ -83,7 +83,9 @@ export default function DashboardScreen() {
     spendEntries.forEach(e => {
       map[e.Category] = (map[e.Category] || 0) + parseFloat(e.Amount || 0)
     })
-    return Object.entries(map).map(([name, value]) => ({ name, value: Math.round(value) }))
+    return Object.entries(map)
+      .map(([name, value]) => ({ name, value: Math.round(value) }))
+      .sort((a, b) => b.value - a.value)
   }, [spendEntries])
 
   // Daily spend for bar chart
@@ -224,22 +226,18 @@ export default function DashboardScreen() {
           {categoryData.length > 0 && (
             <div className={styles.chart}>
               <h3 className={styles.chartTitle}>Category Breakdown</h3>
-              <ResponsiveContainer width="100%" height={260}>
-                <PieChart>
-                  <Pie
-                    data={categoryData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={55}
-                    outerRadius={85}
-                    dataKey="value"
-                    label={({ name, percent }) => `${name} ${(percent*100).toFixed(0)}%`}
-                    labelLine={true}
-                  >
-                    {categoryData.map((entry, i) => <Cell key={entry.name} fill={COLORS[i % COLORS.length]} />)}
-                  </Pie>
+              <ResponsiveContainer width="100%" height={categoryData.length * 44 + 20}>
+                <BarChart data={categoryData} layout="vertical" margin={{ top: 4, right: 70, left: 4, bottom: 0 }}>
+                  <XAxis type="number" tick={false} axisLine={false} tickLine={false} />
+                  <YAxis type="category" dataKey="name" tick={{ fontSize: 12 }} width={90} />
                   <Tooltip formatter={v => `₹${formatAmount(v)}`} />
-                </PieChart>
+                  <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                    {categoryData.map((entry, i) => (
+                      <Cell key={entry.name} fill={COLORS[i % COLORS.length]} />
+                    ))}
+                    <LabelList dataKey="value" position="right" formatter={v => `₹${formatAmount(v)}`} style={{ fontSize: 11, fill: '#4b5563' }} />
+                  </Bar>
+                </BarChart>
               </ResponsiveContainer>
             </div>
           )}
