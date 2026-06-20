@@ -1,8 +1,6 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth.js'
-import { useSheets } from '../hooks/useSheets.js'
-import { formatAmount, filterEntries, getDateRange } from '../lib/utils.js'
 import styles from './NumpadScreen.module.css'
 
 const KEYS = ['1','2','3','4','5','6','7','8','9','.','0','✓']
@@ -21,13 +19,10 @@ export default function NumpadScreen() {
   const [amount, setAmount] = useState('0')
   const [type, setType] = useState('Spend')
   const [gapLabel, setGapLabel] = useState(null)
-  const [forecast, setForecast] = useState(null)
   const navigate = useNavigate()
   const { userEmail } = useAuth()
-  const { fetchAll } = useSheets()
 
   useEffect(() => {
-    // Spend gap timer
     try {
       const raw = localStorage.getItem('lastEntry_' + (userEmail || 'unknown'))
       if (raw) {
@@ -35,29 +30,6 @@ export default function NumpadScreen() {
         setGapLabel(formatGap(Date.now() - ts))
       }
     } catch {}
-
-    // Monthly spend forecast (excludes Rent)
-    const now = new Date()
-    const dayOfMonth = now.getDate()
-    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
-    if (dayOfMonth < 3) return // not enough data yet
-
-    fetchAll().then(entries => {
-      const { dateFrom, dateTo } = getDateRange('thisMonth')
-      const thisMonthSpend = filterEntries(entries, { dateFrom, dateTo, type: 'Spend' })
-        .filter(e => e.Category !== 'Rent')
-      const { dateFrom: prevFrom, dateTo: prevTo } = getDateRange('lastMonth')
-      const lastMonthSpend = filterEntries(entries, { dateFrom: prevFrom, dateTo: prevTo, type: 'Spend' })
-        .filter(e => e.Category !== 'Rent')
-
-      const spentSoFar = thisMonthSpend.reduce((s, e) => s + parseFloat(e.Amount || 0), 0)
-      const projected = Math.round((spentSoFar / dayOfMonth) * daysInMonth)
-      const lastMonthTotal = Math.round(lastMonthSpend.reduce((s, e) => s + parseFloat(e.Amount || 0), 0))
-
-      if (projected > 0) {
-        setForecast({ projected, lastMonthTotal })
-      }
-    }).catch(() => {})
   }, [userEmail])
 
   const handleKey = useCallback((key) => {
@@ -99,15 +71,9 @@ export default function NumpadScreen() {
         </span>
       </div>
 
-      {(gapLabel || forecast) && (
+      {gapLabel && (
         <div className={styles.infoStrip}>
-          {gapLabel && <span>Last logged: {gapLabel}</span>}
-          {forecast && (
-            <span className={forecast.projected > forecast.lastMonthTotal ? styles.forecastOver : styles.forecastOk}>
-              On pace for ₹{formatAmount(forecast.projected)}
-              {forecast.lastMonthTotal > 0 && ` · last month ₹${formatAmount(forecast.lastMonthTotal)}`}
-            </span>
-          )}
+          <span>Last logged: {gapLabel}</span>
         </div>
       )}
 
