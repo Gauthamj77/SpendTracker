@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useSheets } from '../hooks/useSheets.js'
 import { useConfig } from '../hooks/useConfig.js'
+import { useAuth } from '../hooks/useAuth.js'
 import EntryForm from '../components/EntryForm.jsx'
 import ConfirmDialog from '../components/ConfirmDialog.jsx'
 import Toast from '../components/Toast.jsx'
@@ -8,9 +9,15 @@ import { formatDate, formatAmount, getDisplayName, filterEntries } from '../lib/
 import { Link } from 'react-router-dom'
 import styles from './HistoryScreen.module.css'
 
+const PARTNER_EMAILS = {
+  'gautham77bl@gmail.com': 'mariatbenedict726@gmail.com',
+  'mariatbenedict726@gmail.com': 'gautham77bl@gmail.com'
+}
+
 export default function HistoryScreen() {
   const { fetchAll, editEntry, removeEntry, loading } = useSheets()
   const { categories, loaded, loadConfig } = useConfig()
+  const { userEmail } = useAuth()
   const [entries, setEntries] = useState([])
   const [filters, setFilters] = useState({ dateFrom: '', dateTo: '', person: 'both', type: 'both', category: '' })
   const [search, setSearch] = useState('')
@@ -18,10 +25,28 @@ export default function HistoryScreen() {
   const [editValues, setEditValues] = useState(null)
   const [deleteIndex, setDeleteIndex] = useState(null)
   const [toast, setToast] = useState(null)
+  const [partnerBanner, setPartnerBanner] = useState(null)
 
   useEffect(() => {
     if (!loaded) loadConfig()
     fetchAll().then(setEntries).catch(() => setToast({ message: 'Failed to load entries. Please refresh.', type: 'error' }))
+    // Check partner's last entry
+    try {
+      const partnerEmail = PARTNER_EMAILS[userEmail]
+      if (partnerEmail) {
+        const raw = localStorage.getItem('lastEntry_' + partnerEmail)
+        if (raw) {
+          const { ts } = JSON.parse(raw)
+          const ms = Date.now() - ts
+          if (ms < 24 * 60 * 60 * 1000) {
+            const mins = Math.floor(ms / 60000)
+            const label = mins < 1 ? 'just now' : mins < 60 ? `${mins}m ago` : `${Math.floor(mins / 60)}h ago`
+            const partnerName = getDisplayName(partnerEmail)
+            setPartnerBanner(`${partnerName} added an entry ${label}`)
+          }
+        }
+      }
+    } catch {}
   }, [])
 
   const filtered = entries
@@ -111,6 +136,13 @@ export default function HistoryScreen() {
           <button className={styles.searchClear} onClick={() => setSearch('')}>&#x2715;</button>
         )}
       </div>
+
+      {partnerBanner && (
+        <div className={styles.partnerBanner}>
+          <span>&#128100; {partnerBanner}</span>
+          <button className={styles.partnerDismiss} onClick={() => setPartnerBanner(null)}>&#x2715;</button>
+        </div>
+      )}
 
       <div className={styles.filters}>
         <div className={styles.dateFilter}>
