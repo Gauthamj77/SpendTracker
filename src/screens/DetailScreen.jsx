@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import EntryForm from '../components/EntryForm.jsx'
 import Toast from '../components/Toast.jsx'
@@ -19,7 +19,7 @@ function getNow() {
 export default function DetailScreen() {
   const { state } = useLocation()
   const navigate = useNavigate()
-  const { addEntry, loading } = useSheets()
+  const { addEntry, fetchAll, loading } = useSheets()
   const { userEmail } = useAuth()
   const { date, time } = getNow()
 
@@ -34,6 +34,16 @@ export default function DetailScreen() {
   })
   const [toast, setToast] = useState(null)
   const [dupConfirm, setDupConfirm] = useState(false)
+  const [pastNotes, setPastNotes] = useState([])
+
+  useEffect(() => {
+    fetchAll().then(entries => {
+      const notes = entries
+        .map(e => (e.Notes || '').trim())
+        .filter(n => n.length > 0)
+      setPastNotes([...new Set(notes)])
+    }).catch(() => {})
+  }, [])
 
   const handleChange = useCallback((field, value) => {
     setValues(prev => ({ ...prev, [field]: value }))
@@ -85,7 +95,7 @@ export default function DetailScreen() {
       </div>
 
       <div className={styles.body}>
-        <EntryForm values={values} onChange={handleChange} />
+        <EntryForm values={values} onChange={handleChange} pastNotes={pastNotes} />
       </div>
 
       <div className={styles.footer}>

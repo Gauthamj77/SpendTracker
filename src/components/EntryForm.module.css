@@ -6,3 +6,7 @@
 .toggle { display: flex; gap: 6px; }
 .activeToggle { padding: 8px 14px; background: var(--blue); color: white; border-radius: 8px; font-size: 0.875rem; font-weight: 600; }
 .inactiveToggle { padding: 8px 14px; background: var(--gray-100); color: var(--gray-600); border-radius: 8px; font-size: 0.875rem; }
+.suggestions { position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: #fff; border: 1.5px solid var(--gray-200); border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); z-index: 50; overflow: hidden; }
+.suggestionItem { display: block; width: 100%; text-align: left; padding: 10px 12px; font-size: 0.9rem; color: var(--gray-900); border-bottom: 1px solid var(--gray-100); }
+.suggestionItem:last-child { border-bottom: none; }
+.suggestionItem:hover { background: var(--gray-100); }
