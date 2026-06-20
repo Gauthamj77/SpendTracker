@@ -13,6 +13,7 @@ export default function HistoryScreen() {
   const { categories, loaded, loadConfig } = useConfig()
   const [entries, setEntries] = useState([])
   const [filters, setFilters] = useState({ dateFrom: '', dateTo: '', person: 'both', type: 'both', category: '' })
+  const [search, setSearch] = useState('')
   const [editingIndex, setEditingIndex] = useState(null)
   const [editValues, setEditValues] = useState(null)
   const [deleteIndex, setDeleteIndex] = useState(null)
@@ -24,6 +25,13 @@ export default function HistoryScreen() {
   }, [])
 
   const filtered = filterEntries(entries, filters)
+    .filter(e => {
+      if (!search.trim()) return true
+      const q = search.trim().toLowerCase()
+      const notesMatch = (e.Notes || '').toLowerCase().includes(q)
+      const amountMatch = String(e.Amount).includes(q)
+      return notesMatch || amountMatch
+    })
     .map((e, i) => ({ ...e, _origIdx: i }))
     .sort((a, b) => (b.Timestamp || '').localeCompare(a.Timestamp || ''))
 
@@ -49,8 +57,17 @@ export default function HistoryScreen() {
   const handleEditSave = async () => {
     const originalIndex = editValues._origIdx
     const timestamp = `${editValues.date}T${editValues.time}:00`
+    // Map lowercase form fields back to uppercase sheet fields
+    const updatedFields = {
+      Amount: String(editValues.amount),
+      Type: editValues.type,
+      Category: editValues.category,
+      PaymentMethod: editValues.paymentMethod,
+      Notes: editValues.notes || '',
+      Timestamp: timestamp,
+    }
     try {
-      const updated = await editEntry(originalIndex, { ...editValues, Timestamp: timestamp }, entries[originalIndex])
+      const updated = await editEntry(originalIndex, updatedFields, entries[originalIndex])
       const newEntries = [...entries]
       newEntries[originalIndex] = updated
       setEntries(newEntries)
@@ -78,6 +95,20 @@ export default function HistoryScreen() {
       <div className={styles.header}>
         <h2 className={styles.title}>History</h2>
         <Link to="/settings" className={styles.settings}>&#9881;</Link>
+      </div>
+
+      <div className={styles.searchBar}>
+        <span className={styles.searchIcon}>&#128269;</span>
+        <input
+          type="text"
+          className={styles.searchInput}
+          placeholder="Search by notes or amount..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+        />
+        {search && (
+          <button className={styles.searchClear} onClick={() => setSearch('')}>&#x2715;</button>
+        )}
       </div>
 
       <div className={styles.filters}>
@@ -112,7 +143,12 @@ export default function HistoryScreen() {
           <div key={entry.ID || i} className={styles.row} onClick={() => openEdit(entry, i)}>
             <div className={styles.rowLeft}>
               <span className={styles.category}>{entry.Notes || entry.Category}</span>
-              <span className={styles.meta}>{entry.Notes ? entry.Category + ' · ' : ''}{formatDate(entry.Timestamp)} · {getDisplayName(entry.AddedBy)}</span>
+              <div className={styles.metaRow}>
+                <span className={`${styles.nameBadge} ${entry.AddedBy?.toLowerCase().includes('gautham') ? styles.nameBadgeG : styles.nameBadgeM}`}>
+                  {getDisplayName(entry.AddedBy)}
+                </span>
+                <span className={styles.meta}>{entry.Notes ? entry.Category + ' · ' : ''}{formatDate(entry.Timestamp)}</span>
+              </div>
             </div>
             <div className={styles.rowRight}>
               <span className={entry.Type === 'Income' ? styles.income : styles.spend}>
