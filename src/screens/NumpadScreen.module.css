@@ -20,6 +20,18 @@
   margin-bottom: 8px;
 }
 
+.infoStrip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.75rem;
+  color: var(--gray-400);
+  margin-bottom: 8px;
+}
+.forecastOver { color: #d97706; font-weight: 600; }
+.forecastOk { color: var(--green); font-weight: 600; }
+
 .numpad {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
