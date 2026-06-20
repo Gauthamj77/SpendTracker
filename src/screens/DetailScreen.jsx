@@ -26,7 +26,7 @@ export default function DetailScreen() {
     date,
     time,
     category: '',
-    paymentMethod: '',
+    paymentMethod: 'UPI',
     notes: ''
   })
   const [toast, setToast] = useState(null)
