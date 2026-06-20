@@ -24,6 +24,9 @@ export function useSheets() {
         EditedAt: ''
       }
       await appendSpend(sheetId, entry)
+      // Write last entry meta for gap timer, duplicate detection, partner accountability
+      const meta = { ts: Date.now(), amount: String(amount), category, email: userEmail || 'unknown' }
+      localStorage.setItem('lastEntry_' + (userEmail || 'unknown'), JSON.stringify(meta))
       return entry
     } catch (e) {
       setError(e.message)
