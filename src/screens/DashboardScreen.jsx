@@ -27,7 +27,7 @@ export default function DashboardScreen() {
   const [allEntries, setAllEntries] = useState([])
   const [preset, setPreset] = useState('thisMonth')
   const [person, setPerson] = useState('both')
-  const [excludeRent, setExcludeRent] = useState(false)
+  const [excludeRent, setExcludeRent] = useState(true)
   const [toast, setToast] = useState(null)
 
   useEffect(() => {
