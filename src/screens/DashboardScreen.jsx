@@ -65,7 +65,10 @@ export default function DashboardScreen() {
     const totalBudget = categories.reduce((s, c) => s + (budgets[c] || 0), 0)
     if (totalBudget === 0) return null
     const spent = monthSpend.reduce((s, e) => s + parseFloat(e.Amount || 0), 0)
-    return { total: totalBudget, spent, remaining: totalBudget - spent }
+    const today = new Date()
+    const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate()
+    const daysLeft = lastDay - today.getDate()
+    return { total: totalBudget, spent, remaining: totalBudget - spent, daysLeft }
   }, [allEntries, categories, gauthamBudgets, mariaBudgets, person, preset])
 
   // Daily average: total / days elapsed in the period
@@ -218,6 +221,27 @@ export default function DashboardScreen() {
                     of ₹{formatAmount(budgetRemaining.total)}
                   </span>
                 </span>
+                {/* Progress bar */}
+                {(() => {
+                  const pct = Math.min(100, Math.round((budgetRemaining.spent / budgetRemaining.total) * 100))
+                  const barColor = pct >= 100 ? 'var(--red)' : pct >= 80 ? '#d97706' : 'var(--blue)'
+                  return (
+                    <div style={{ marginTop: 8 }}>
+                      <div style={{ background: 'var(--gray-200)', borderRadius: 99, height: 6, overflow: 'hidden' }}>
+                        <div style={{ width: `${pct}%`, height: '100%', background: barColor, borderRadius: 99, transition: 'width 0.4s' }} />
+                      </div>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--gray-400)', marginTop: 4, display: 'block' }}>
+                        {pct}% used
+                      </span>
+                    </div>
+                  )
+                })()}
+                {/* Burn rate */}
+                {budgetRemaining.daysLeft > 0 && budgetRemaining.remaining > 0 && (
+                  <span style={{ fontSize: '0.75rem', color: 'var(--gray-400)', marginTop: 4, display: 'block' }}>
+                    {budgetRemaining.daysLeft} days left, you can spend ₹{formatAmount(Math.round(budgetRemaining.remaining / budgetRemaining.daysLeft))} per day
+                  </span>
+                )}
               </div>
             )}
           </div>
