@@ -24,7 +24,9 @@ export default function HistoryScreen() {
     fetchAll().then(setEntries).catch(() => setToast({ message: 'Failed to load entries. Please refresh.', type: 'error' }))
   }, [])
 
-  const filtered = filterEntries(entries, filters)
+  const filtered = entries
+    .map((e, i) => ({ ...e, _origIdx: i }))
+    .filter(e => filterEntries([e], filters).length > 0)
     .filter(e => {
       if (!search.trim()) return true
       const q = search.trim().toLowerCase()
@@ -32,7 +34,6 @@ export default function HistoryScreen() {
       const amountMatch = String(e.Amount).includes(q)
       return notesMatch || amountMatch
     })
-    .map((e, i) => ({ ...e, _origIdx: i }))
     .sort((a, b) => (b.Timestamp || '').localeCompare(a.Timestamp || ''))
 
   const openEdit = (entry, i) => {
