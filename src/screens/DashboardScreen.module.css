@@ -19,3 +19,10 @@
 .chartTitle { font-size: 0.875rem; font-weight: 700; margin-bottom: 4px; color: var(--gray-600); }
 .chartSub { font-size: 0.75rem; color: var(--gray-400); margin-bottom: 12px; }
 .empty { text-align: center; padding: 40px; color: var(--gray-400); }
+.celebrationBanner {
+  display: flex; align-items: center; gap: 10px;
+  background: #f0fdf4; border: 1px solid #86efac;
+  border-radius: var(--radius); padding: 12px 16px;
+  font-size: 0.875rem; color: #166534;
+}
+.celebrationIcon { font-size: 1.2rem; flex-shrink: 0; }

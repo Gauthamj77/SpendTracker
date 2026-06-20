@@ -73,7 +73,41 @@ export default function DashboardScreen() {
     return { total: totalBudget, spent, remaining: totalBudget - spent, daysLeft }
   }, [allEntries, categories, gauthamBudgets, mariaBudgets, person, preset])
 
-  // Daily average: total / days elapsed in the period
+  // Savings highlight: this period vs previous period spend difference
+  const savingsHighlight = useMemo(() => {
+    const prevPreset = preset === 'lastMonth' ? 'last3Months' : null
+    if (!prevPreset) return null
+    const { dateFrom: prevFrom, dateTo: prevTo } = getDateRange(prevPreset)
+    // Use a comparable single-month window for last3Months (the month before lastMonth)
+    const now = new Date()
+    const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+    const twoMonthsAgoStart = new Date(now.getFullYear(), now.getMonth() - 2, 1)
+    const twoMonthsAgoEnd = new Date(now.getFullYear(), now.getMonth() - 1, 0)
+    const prevSingle = filterEntries(baseEntries, {
+      dateFrom: twoMonthsAgoStart.toISOString().slice(0, 10),
+      dateTo: twoMonthsAgoEnd.toISOString().slice(0, 10),
+      person, type: 'Spend'
+    })
+    const prevTotal = prevSingle.reduce((s, e) => s + parseFloat(e.Amount || 0), 0)
+    if (prevTotal === 0) return null
+    const diff = Math.round(prevTotal - totalSpend)
+    return diff > 0 ? diff : null
+  }, [baseEntries, totalSpend, preset, person])
+
+  // Under budget celebration: last month finished under budget
+  const underBudgetCelebration = useMemo(() => {
+    if (preset !== 'lastMonth') return null
+    const { dateFrom: mFrom, dateTo: mTo } = getDateRange('lastMonth')
+    const monthSpend = filterEntries(allEntries, { dateFrom: mFrom, dateTo: mTo, person, type: 'Spend' })
+    const budgets = person === 'both'
+      ? Object.fromEntries(categories.map(c => [c, (gauthamBudgets[c] || 0) + (mariaBudgets[c] || 0)]))
+      : person === 'G' ? gauthamBudgets : mariaBudgets
+    const totalBudget = categories.reduce((s, c) => s + (budgets[c] || 0), 0)
+    if (totalBudget === 0) return null
+    const spent = monthSpend.reduce((s, e) => s + parseFloat(e.Amount || 0), 0)
+    const saved = Math.round(totalBudget - spent)
+    return saved > 0 ? saved : null
+  }, [allEntries, categories, gauthamBudgets, mariaBudgets, person, preset])
   const dailyAverage = useMemo(() => {
     if (!dateFrom || spendEntries.length === 0) return 0
     const from = new Date(dateFrom)
@@ -204,6 +238,14 @@ export default function DashboardScreen() {
       {loading ? <p className={styles.loading}>Loading...</p> : (
         <div className={styles.body}>
 
+          {/* Under budget celebration banner */}
+          {underBudgetCelebration && (
+            <div className={styles.celebrationBanner}>
+              <span className={styles.celebrationIcon}>🎉</span>
+              <span>You finished last month <strong>₹{formatAmount(underBudgetCelebration)} under budget</strong></span>
+            </div>
+          )}
+
           {/* Summary cards */}
           <div className={styles.cards}>
             <div className={styles.card}>
@@ -214,6 +256,13 @@ export default function DashboardScreen() {
               <span className={styles.cardLabel}>Daily Average</span>
               <span className={styles.cardSpend}>₹{formatAmount(dailyAverage)}</span>
             </div>
+            {/* Savings highlight */}
+            {savingsHighlight && (
+              <div className={styles.card} style={{ gridColumn: '1 / -1', background: '#f0fdf4', borderColor: '#86efac' }}>
+                <span className={styles.cardLabel}>Spent Less Than Previous Month</span>
+                <span className={styles.cardIncome}>₹{formatAmount(savingsHighlight)} less</span>
+              </div>
+            )}
             {budgetRemaining && (
               <div className={styles.card} style={{ gridColumn: '1 / -1' }}>
                 <span className={styles.cardLabel}>Budget Remaining This Month</span>
