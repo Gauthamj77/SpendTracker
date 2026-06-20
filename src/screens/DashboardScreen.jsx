@@ -58,7 +58,7 @@ export default function DashboardScreen() {
   const budgetRemaining = useMemo(() => {
     if (preset !== 'thisMonth') return null
     const { dateFrom: mFrom, dateTo: mTo } = getDateRange('thisMonth')
-    const monthSpend = filterEntries(baseEntries, { dateFrom: mFrom, dateTo: mTo, person, type: 'Spend' })
+    const monthSpend = filterEntries(allEntries, { dateFrom: mFrom, dateTo: mTo, person, type: 'Spend' })
     const budgets = person === 'both'
       ? Object.fromEntries(categories.map(c => [c, (gauthamBudgets[c] || 0) + (mariaBudgets[c] || 0)]))
       : person === 'G' ? gauthamBudgets : mariaBudgets
@@ -66,7 +66,7 @@ export default function DashboardScreen() {
     if (totalBudget === 0) return null
     const spent = monthSpend.reduce((s, e) => s + parseFloat(e.Amount || 0), 0)
     return { total: totalBudget, spent, remaining: totalBudget - spent }
-  }, [baseEntries, categories, gauthamBudgets, mariaBudgets, person, preset])
+  }, [allEntries, categories, gauthamBudgets, mariaBudgets, person, preset])
 
   // Daily average: total / days elapsed in the period
   const dailyAverage = useMemo(() => {
