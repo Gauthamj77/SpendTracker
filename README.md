@@ -8,13 +8,40 @@ A shared spend tracking Progressive Web App (PWA) for two people. Built with Rea
 
 ## Features
 
+### Entry
 - Numpad-first entry - open the app, type the amount, done in under 5 seconds
-- Shared data - both users write to the same Google Sheet in real time
-- Dashboard with charts - category breakdown, daily spend, running balance, top 5 spends, category trend, weekday spending pattern
-- History - full list with filters by person, category, type and date range
-- Edit and delete any entry
-- Configurable categories and payment methods
-- Installable as a PWA on iPhone (Safari) and Android (Brave/Chrome)
+- UPI pre-selected as default payment method
+- Notes autocomplete - suggests from your past notes as you type
+- Duplicate entry detection - warns if you add the same amount and category within 2 minutes
+
+### Home Screen
+- Spend gap timer - shows how long ago you last logged an entry (per person)
+- Monthly spend forecast - "On pace for ₹28,000 · last month ₹24,000" (excludes Rent)
+
+### Dashboard
+- Total spend and daily average cards
+- Budget remaining card with progress bar, burn rate ("12 days left, you can spend ₹350 per day"), and overspend warning
+- Category breakdown - horizontal bar chart sorted by spend, no label clipping
+- Running balance line chart
+- Daily spend bar chart
+- Top 5 individual spends
+- Category trend vs previous period
+- Spending by day of week
+- Rent exclude toggle - removes Rent from all charts and totals (budget remaining always includes it)
+- Filters: This Month / Last Month / 3 Months, and per-person filter (Both / Gautham / Maria)
+
+### History
+- Full entry list with filters by date range, person, type, and category
+- Search by notes or amount
+- Name badges - colour-coded per person (blue / pink)
+- Edit any entry inline
+- Delete with confirmation
+- Partner accountability banner - shows when your partner last added an entry
+
+### Shared
+- Both users write to the same Google Sheet in real time
+- Configurable categories and payment methods per user
+- Installable as a PWA on iPhone (Safari) and Android (Chrome/Brave)
 - Completely free - no server, no subscription
 
 ---
@@ -26,7 +53,7 @@ A shared spend tracking Progressive Web App (PWA) for two people. Built with Rea
 | Frontend | React 19 + Vite 8 |
 | PWA | vite-plugin-pwa |
 | Charts | Recharts |
-| Routing | React Router v6 |
+| Routing | React Router v7 |
 | Auth | Google Identity Services (OAuth 2.0) |
 | Database | Google Sheets API v4 |
 | Hosting | GitHub Pages |
@@ -58,6 +85,8 @@ The app uses one shared Google Sheet with two tabs.
 |---|---|
 | Row 1 | Categories - one value per cell (e.g. Food, Travel, Bills...) |
 | Row 2 | Payment methods - one value per cell (e.g. Cash, UPI, Card...) |
+| Row 3 | Gautham's budget per category (same order as Row 1) |
+| Row 4 | Maria's budget per category (same order as Row 1) |
 
 ---
 
@@ -115,7 +144,7 @@ Add it at: **Repo Settings - Secrets and variables - Actions - New repository se
    - Type: **Web Application**
    - Authorized JavaScript origins: `https://gauthamj77.github.io`
 5. Copy the **Client ID** and add it as the GitHub secret above
-6. Go to **OAuth consent screen - Test users** - add both users' Gmail addresses
+6. Go to **OAuth consent screen - Test users** and add both users' Gmail addresses
 
 ---
 
@@ -128,9 +157,9 @@ Add it at: **Repo Settings - Secrets and variables - Actions - New repository se
    ```
    ID  Timestamp  AddedBy  Amount  Type  Category  PaymentMethod  Notes  EditedAt
    ```
-5. In `Config` Row 1, add categories (one per cell):
+5. In `Config` Row 1, add your categories (one per cell):
    ```
-   Food  Travel  Shopping  Bills  Health  Entertainment  Other
+   Food  Travel  Shopping  Bills  Health  Entertainment  Rent  Other
    ```
 6. In `Config` Row 2, add payment methods (one per cell):
    ```
@@ -146,11 +175,11 @@ Add it at: **Repo Settings - Secrets and variables - Actions - New repository se
 **iPhone (Safari only):**
 1. Open Safari and go to the app URL
 2. Sign in
-3. Tap the Share button (box with arrow pointing up)
+3. Tap the Share button
 4. Tap **Add to Home Screen**
 
-**Android (Brave or Chrome):**
-1. Open Brave/Chrome and go to the app URL
+**Android (Chrome or Brave):**
+1. Open the app URL
 2. Sign in
 3. Tap the three-dot menu
 4. Tap **Add to Home screen** or **Install app**
@@ -163,29 +192,30 @@ Add it at: **Repo Settings - Secrets and variables - Actions - New repository se
 src/
   screens/
     AuthScreen.jsx          Google Sign-In screen
-    NumpadScreen.jsx        Home screen - numpad entry
-    DetailScreen.jsx        Entry form (category, payment, notes)
-    DashboardScreen.jsx     Charts and summary
-    HistoryScreen.jsx       Full entry list with filters
+    NumpadScreen.jsx        Home screen - numpad entry, gap timer, forecast
+    DetailScreen.jsx        Entry form (category, payment, notes, duplicate check)
+    DashboardScreen.jsx     Charts, budget progress, burn rate
+    HistoryScreen.jsx       Entry list with filters, search, edit, partner banner
+    BudgetScreen.jsx        Set per-category budgets per person
     SettingsScreen.jsx      Manage categories and payment methods
+    ImportScreen.jsx        Bulk import entries
   context/
     AuthContext.jsx         OAuth token, user email, sheet ID
-    ConfigContext.jsx       Categories and payment methods state
+    ConfigContext.jsx       Categories, payment methods, budgets state
   hooks/
     useAuth.js              Auth context hook
-    useSheets.js            Sheets CRUD operations
+    useSheets.js            Sheets CRUD + localStorage writes for gap timer
     useConfig.js            Config context hook
   lib/
     auth.js                 Google Identity Services token management
     sheetsClient.js         Google Sheets API v4 calls
     utils.js                Date/amount formatting, filtering helpers
   components/
-    BottomNav.jsx           Three-tab navigation bar
-    EntryForm.jsx           Shared entry form (used in Detail and History edit)
+    BottomNav.jsx           Four-tab navigation bar
+    EntryForm.jsx           Shared entry form with notes autocomplete
     ChipPicker.jsx          Category/payment method chip selector
     Toast.jsx               Success/error toast notifications
-    ConfirmDialog.jsx       Delete confirmation dialog
+    ConfirmDialog.jsx       Delete/duplicate confirmation dialog
   App.jsx                   Root component with routing
   main.jsx                  Entry point
 ```
-
