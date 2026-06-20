@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, LabelList } from 'recharts'
 import { useSheets } from '../hooks/useSheets.js'
 import { useConfig } from '../hooks/useConfig.js'
+import { useAuth } from '../hooks/useAuth.js'
 import { filterEntries, getDateRange, formatAmount, getDisplayName } from '../lib/utils.js'
 import { Link } from 'react-router-dom'
 import Toast from '../components/Toast.jsx'
@@ -24,9 +25,10 @@ const ChartTooltip = ({ active, payload, label, color = '#2563eb' }) => {
 export default function DashboardScreen() {
   const { fetchAll, loading } = useSheets()
   const { gauthamBudgets, mariaBudgets, categories, loaded, loadConfig } = useConfig()
+  const { userEmail } = useAuth()
   const [allEntries, setAllEntries] = useState([])
   const [preset, setPreset] = useState('thisMonth')
-  const [person, setPerson] = useState('both')
+  const [person, setPerson] = useState(() => userEmail?.startsWith('gautham') ? 'G' : userEmail?.startsWith('maria') ? 'M' : 'both')
   const [excludeRent, setExcludeRent] = useState(true)
   const [toast, setToast] = useState(null)
 

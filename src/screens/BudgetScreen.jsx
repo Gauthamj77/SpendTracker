@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useConfig } from '../hooks/useConfig.js'
 import { useSheets } from '../hooks/useSheets.js'
+import { useAuth } from '../hooks/useAuth.js'
 import { getDateRange, formatAmount } from '../lib/utils.js'
 import { Link } from 'react-router-dom'
 import Toast from '../components/Toast.jsx'
@@ -25,9 +26,10 @@ function ProgressBar({ percent }) {
 export default function BudgetScreen() {
   const { categories, gauthamBudgets, mariaBudgets, saveGauthamBudgets, saveMariaBudgets, loaded, loadConfig } = useConfig()
   const { fetchAll } = useSheets()
-  const [person, setPerson] = useState('gautham')
+  const { userEmail } = useAuth()
+  const [person, setPerson] = useState(() => userEmail?.startsWith('maria') ? 'maria' : 'gautham')
   const [allEntries, setAllEntries] = useState([])
-  const [editing, setEditing] = useState(null) // { category, value }
+  const [editing, setEditing] = useState(null)
   const [toast, setToast] = useState(null)
   const [saving, setSaving] = useState(false)
 
