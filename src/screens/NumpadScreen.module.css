@@ -13,6 +13,13 @@
 .currency { font-size: 2rem; color: var(--gray-400); align-self: flex-start; margin-top: 12px; }
 .amount { font-size: 3.5rem; font-weight: 700; color: var(--gray-900); }
 
+.gapTimer {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--gray-400);
+  margin-bottom: 8px;
+}
+
 .numpad {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

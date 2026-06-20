@@ -1,13 +1,36 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { useAuth } from '../hooks/useAuth.js'
 import styles from './NumpadScreen.module.css'
 
 const KEYS = ['1','2','3','4','5','6','7','8','9','.','0','✓']
 
+function formatGap(ms) {
+  const mins = Math.floor(ms / 60000)
+  if (mins < 1) return 'just now'
+  if (mins < 60) return `${mins}m ago`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24) return `${hrs}h ago`
+  const days = Math.floor(hrs / 24)
+  return `${days}d ago`
+}
+
 export default function NumpadScreen() {
   const [amount, setAmount] = useState('0')
   const [type, setType] = useState('Spend')
+  const [gapLabel, setGapLabel] = useState(null)
   const navigate = useNavigate()
+  const { userEmail } = useAuth()
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('lastEntry_' + (userEmail || 'unknown'))
+      if (raw) {
+        const { ts } = JSON.parse(raw)
+        setGapLabel(formatGap(Date.now() - ts))
+      }
+    } catch {}
+  }, [userEmail])
 
   const handleKey = useCallback((key) => {
     if (key === '✓') {
@@ -47,6 +70,12 @@ export default function NumpadScreen() {
           }
         </span>
       </div>
+
+      {gapLabel && (
+        <div className={styles.gapTimer}>
+          Last logged: {gapLabel}
+        </div>
+      )}
 
       <div className={styles.numpad}>
         {KEYS.map(k => (
