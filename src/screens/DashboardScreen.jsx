@@ -27,6 +27,7 @@ export default function DashboardScreen() {
   const [allEntries, setAllEntries] = useState([])
   const [preset, setPreset] = useState('thisMonth')
   const [person, setPerson] = useState('both')
+  const [excludeRent, setExcludeRent] = useState(false)
   const [toast, setToast] = useState(null)
 
   useEffect(() => {
@@ -36,10 +37,16 @@ export default function DashboardScreen() {
 
   const { dateFrom, dateTo } = getDateRange(preset)
 
+  // Entries with rent optionally excluded - applied at source so all charts are covered
+  const baseEntries = useMemo(() =>
+    excludeRent ? allEntries.filter(e => e.Category !== 'Rent') : allEntries,
+    [allEntries, excludeRent]
+  )
+
   // Only spend entries for selected person and period
   const spendEntries = useMemo(() =>
-    filterEntries(allEntries, { dateFrom, dateTo, person, type: 'Spend' }),
-    [allEntries, dateFrom, dateTo, person]
+    filterEntries(baseEntries, { dateFrom, dateTo, person, type: 'Spend' }),
+    [baseEntries, dateFrom, dateTo, person]
   )
 
   const totalSpend = useMemo(() =>
@@ -51,7 +58,7 @@ export default function DashboardScreen() {
   const budgetRemaining = useMemo(() => {
     if (preset !== 'thisMonth') return null
     const { dateFrom: mFrom, dateTo: mTo } = getDateRange('thisMonth')
-    const monthSpend = filterEntries(allEntries, { dateFrom: mFrom, dateTo: mTo, person, type: 'Spend' })
+    const monthSpend = filterEntries(baseEntries, { dateFrom: mFrom, dateTo: mTo, person, type: 'Spend' })
     const budgets = person === 'both'
       ? Object.fromEntries(categories.map(c => [c, (gauthamBudgets[c] || 0) + (mariaBudgets[c] || 0)]))
       : person === 'G' ? gauthamBudgets : mariaBudgets
@@ -59,7 +66,7 @@ export default function DashboardScreen() {
     if (totalBudget === 0) return null
     const spent = monthSpend.reduce((s, e) => s + parseFloat(e.Amount || 0), 0)
     return { total: totalBudget, spent, remaining: totalBudget - spent }
-  }, [allEntries, categories, gauthamBudgets, mariaBudgets, person, preset])
+  }, [baseEntries, categories, gauthamBudgets, mariaBudgets, person, preset])
 
   // Daily average: total / days elapsed in the period
   const dailyAverage = useMemo(() => {
@@ -122,7 +129,7 @@ export default function DashboardScreen() {
     const prevPreset = preset === 'thisMonth' ? 'lastMonth' : preset === 'lastMonth' ? 'last3Months' : null
     if (!prevPreset) return []
     const { dateFrom: prevFrom, dateTo: prevTo } = getDateRange(prevPreset)
-    const prevEntries = filterEntries(allEntries, { dateFrom: prevFrom, dateTo: prevTo, person, type: 'Spend' })
+    const prevEntries = filterEntries(baseEntries, { dateFrom: prevFrom, dateTo: prevTo, person, type: 'Spend' })
     const current = {}, previous = {}
     spendEntries.forEach(e => { current[e.Category] = (current[e.Category] || 0) + parseFloat(e.Amount || 0) })
     prevEntries.forEach(e => { previous[e.Category] = (previous[e.Category] || 0) + parseFloat(e.Amount || 0) })
@@ -132,7 +139,7 @@ export default function DashboardScreen() {
       Current: Math.round(current[cat] || 0),
       Previous: Math.round(previous[cat] || 0)
     })).filter(d => d.Current > 0 || d.Previous > 0)
-  }, [spendEntries, allEntries, preset, person])
+  }, [spendEntries, baseEntries, preset, person])
 
   // Weekday vs Weekend
   const weekdayData = useMemo(() => {
@@ -179,6 +186,12 @@ export default function DashboardScreen() {
             {p.label}
           </button>
         ))}
+        <button
+          className={excludeRent ? styles.activeFilterRent : styles.filterRent}
+          onClick={() => setExcludeRent(v => !v)}
+        >
+          {excludeRent ? 'Rent excluded' : 'Include Rent'}
+        </button>
       </div>
 
       {loading ? <p className={styles.loading}>Loading...</p> : (
