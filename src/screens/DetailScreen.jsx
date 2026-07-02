@@ -39,9 +39,14 @@ export default function DetailScreen() {
   useEffect(() => {
     fetchAll().then(entries => {
       const notes = entries
-        .map(e => (e.Notes || '').trim())
-        .filter(n => n.length > 0)
-      setPastNotes([...new Set(notes)])
+        .map(e => ({
+          notes: (e.Notes || '').trim(),
+          amount: parseFloat(e.Amount || 0),
+          category: e.Category || '',
+          paymentMethod: e.PaymentMethod || ''
+        }))
+        .filter(item => item.notes.length > 0)
+      setPastNotes(notes)
     }).catch(() => {})
   }, [])
 

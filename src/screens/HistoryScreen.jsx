@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useSheets } from '../hooks/useSheets.js'
 import { useConfig } from '../hooks/useConfig.js'
 import { useAuth } from '../hooks/useAuth.js'
@@ -19,6 +19,16 @@ export default function HistoryScreen() {
   const { categories, loaded, loadConfig } = useConfig()
   const { userEmail } = useAuth()
   const [entries, setEntries] = useState([])
+  const pastNotes = useMemo(() => {
+    return entries
+      .map(e => ({
+        notes: (e.Notes || '').trim(),
+        amount: parseFloat(e.Amount || 0),
+        category: e.Category || '',
+        paymentMethod: e.PaymentMethod || ''
+      }))
+      .filter(item => item.notes.length > 0)
+  }, [entries])
   const [filters, setFilters] = useState({ dateFrom: '', dateTo: '', person: 'both', type: 'both', category: '' })
   const [search, setSearch] = useState('')
   const [editingIndex, setEditingIndex] = useState(null)
@@ -201,7 +211,7 @@ export default function HistoryScreen() {
             <button className={styles.saveBtn} onClick={handleEditSave}>Save</button>
           </div>
           <div className={styles.editBody}>
-            <EntryForm values={editValues} onChange={handleEditChange} />
+            <EntryForm values={editValues} onChange={handleEditChange} pastNotes={pastNotes} />
             <button
               className={styles.deleteEntryBtn}
               onClick={() => { setEditingIndex(null); setDeleteIndex(editingIndex) }}

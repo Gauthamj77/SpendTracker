@@ -1,28 +1,84 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useMemo } from 'react'
 import { useConfig } from '../hooks/useConfig.js'
 import ChipPicker from './ChipPicker.jsx'
 import styles from './EntryForm.module.css'
 
 export default function EntryForm({ values, onChange, pastNotes = [] }) {
   const { categories, paymentMethods, loaded, loadConfig } = useConfig()
-  const [suggestions, setSuggestions] = useState([])
   const [showSuggestions, setShowSuggestions] = useState(false)
   const notesRef = useRef(null)
 
   useEffect(() => { if (!loaded) loadConfig() }, [loaded, loadConfig])
 
+  // Dynamically calculate suggestions based on notes input, amount, and category
+  const suggestions = useMemo(() => {
+    const val = values.notes || ''
+    if (val.trim().length === 0 || pastNotes.length === 0) return []
+
+    const q = val.trim().toLowerCase()
+    const enteredAmount = parseFloat(values.amount || 0)
+    const currentCategory = values.category || ''
+
+    // 1. Group past entries by note text
+    const groups = {}
+    pastNotes.forEach(item => {
+      // Normalize pastNotes if they are strings (backward compatibility check)
+      const noteText = typeof item === 'string' ? item.trim() : (item.notes || '').trim()
+      const noteAmount = typeof item === 'string' ? 0 : parseFloat(item.amount || 0)
+      const noteCategory = typeof item === 'string' ? '' : item.category || ''
+      
+      const noteLower = noteText.toLowerCase()
+      
+      // Match check: must contain search query and not be identical
+      if (noteLower.includes(q) && noteLower !== q) {
+        if (!groups[noteText]) {
+          groups[noteText] = {
+            text: noteText,
+            instances: []
+          }
+        }
+        groups[noteText].instances.push({ amount: noteAmount, category: noteCategory })
+      }
+    })
+
+    // 2. Score each group
+    const candidates = Object.values(groups).map(g => {
+      let score = g.instances.length // Base score: frequency
+      
+      // Exact amount match check (highest priority)
+      const hasAmountMatch = g.instances.some(inst => Math.abs(inst.amount - enteredAmount) < 0.01)
+      if (hasAmountMatch && enteredAmount > 0) {
+        score += 1000
+      }
+      
+      // Category match check
+      const hasCategoryMatch = g.instances.some(inst => inst.category === currentCategory)
+      if (hasCategoryMatch && currentCategory) {
+        score += 100
+      }
+
+      // Starts-with prefix boost
+      if (g.text.toLowerCase().startsWith(q)) {
+        score += 10
+      }
+
+      return { text: g.text, score }
+    })
+
+    // 3. Sort by score desc, then alphabetically
+    candidates.sort((a, b) => {
+      if (b.score !== a.score) {
+        return b.score - a.score
+      }
+      return a.text.localeCompare(b.text)
+    })
+
+    return candidates.map(c => c.text).slice(0, 5)
+  }, [values.notes, values.amount, values.category, pastNotes])
+
   const handleNotesChange = (val) => {
     onChange('notes', val)
-    if (val.trim().length > 0 && pastNotes.length > 0) {
-      const q = val.toLowerCase()
-      const filtered = [...new Set(pastNotes)]
-        .filter(n => n.toLowerCase().includes(q) && n.toLowerCase() !== q)
-        .slice(0, 5)
-      setSuggestions(filtered)
-      setShowSuggestions(filtered.length > 0)
-    } else {
-      setShowSuggestions(false)
-    }
+    setShowSuggestions(val.trim().length > 0)
   }
 
   const pickSuggestion = (note) => {
@@ -96,7 +152,7 @@ export default function EntryForm({ values, onChange, pastNotes = [] }) {
           onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
           autoComplete="off"
         />
-        {showSuggestions && (
+        {showSuggestions && suggestions.length > 0 && (
           <div className={styles.suggestions}>
             {suggestions.map(note => (
               <button
