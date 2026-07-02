@@ -1,16 +1,48 @@
-import { useState, useEffect, useMemo } from 'react'
-import { PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, LabelList } from 'recharts'
+import { useState, useEffect, useMemo, useCallback } from 'react'
+import { Cell, BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, LabelList } from 'recharts'
 import { useSheets } from '../hooks/useSheets.js'
 import { useConfig } from '../hooks/useConfig.js'
 import { useAuth } from '../hooks/useAuth.js'
-import { filterEntries, getDateRange, formatAmount, getDisplayName } from '../lib/utils.js'
+import { filterEntries, getDateRange, formatAmount } from '../lib/utils.js'
 import { Link } from 'react-router-dom'
 import Toast from '../components/Toast.jsx'
 import styles from './DashboardScreen.module.css'
 
 const COLORS = ['#2563eb','#16a34a','#dc2626','#d97706','#7c3aed','#0891b2','#be185d','#65a30d']
-const PRESETS = ['thisMonth','lastMonth','last3Months']
-const PRESET_LABELS = { thisMonth: 'This Month', lastMonth: 'Last Month', last3Months: '3 Months' }
+function getDaysInMonth(yearMonthStr) {
+  const [yStr, mStr] = yearMonthStr.split('-')
+  const y = parseInt(yStr), m = parseInt(mStr)
+  const now = new Date()
+  if (y === now.getFullYear() && m === (now.getMonth() + 1)) {
+    return now.getDate()
+  }
+  return new Date(y, m, 0).getDate()
+}
+
+function getPreviousMonth(yearMonthStr) {
+  const [yStr, mStr] = yearMonthStr.split('-')
+  let y = parseInt(yStr), m = parseInt(mStr)
+  m--
+  if (m === 0) {
+    m = 12
+    y--
+  }
+  return `${y}-${String(m).padStart(2, '0')}`
+}
+
+function getMonthLabel(ym) {
+  const now = new Date()
+  const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+  const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+  const lastMonth = `${lastMonthDate.getFullYear()}-${String(lastMonthDate.getMonth() + 1).padStart(2, '0')}`
+  
+  if (ym === thisMonth) return 'This Month'
+  if (ym === lastMonth) return 'Last Month'
+  
+  const [y, m] = ym.split('-')
+  const date = new Date(parseInt(y), parseInt(m) - 1, 1)
+  return date.toLocaleDateString('en-IN', { month: 'short', year: '2-digit' })
+}
 
 const ChartTooltip = ({ active, payload, label, color = '#2563eb' }) => {
   if (!active || !payload?.length) return null
@@ -27,7 +59,19 @@ export default function DashboardScreen() {
   const { gauthamBudgets, mariaBudgets, categories, loaded, loadConfig } = useConfig()
   const { userEmail } = useAuth()
   const [allEntries, setAllEntries] = useState([])
-  const [preset, setPreset] = useState('thisMonth')
+  
+  const thisMonthStr = useMemo(() => {
+    const d = new Date()
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+  }, [])
+  const lastMonthStr = useMemo(() => {
+    const d = new Date()
+    const lastMonthDate = new Date(d.getFullYear(), d.getMonth() - 1, 1)
+    return `${lastMonthDate.getFullYear()}-${String(lastMonthDate.getMonth() + 1).padStart(2, '0')}`
+  }, [])
+  const [selectedMonths, setSelectedMonths] = useState([thisMonthStr])
+  const [modalOpen, setModalOpen] = useState(false)
+  
   const [person, setPerson] = useState(() => userEmail?.startsWith('gautham') ? 'G' : userEmail?.startsWith('maria') ? 'M' : 'both')
   const [excludeRent, setExcludeRent] = useState(true)
   const [toast, setToast] = useState(null)
@@ -35,9 +79,53 @@ export default function DashboardScreen() {
   useEffect(() => {
     if (!loaded) loadConfig()
     fetchAll().then(setAllEntries).catch(() => setToast({ message: 'Failed to load entries. Please refresh.', type: 'error' }))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const { dateFrom, dateTo } = getDateRange(preset)
+  // Extract all unique months from entries
+  const availableMonths = useMemo(() => {
+    const months = new Set()
+    months.add(thisMonthStr)
+    months.add(lastMonthStr)
+    
+    allEntries.forEach(e => {
+      if (e.Timestamp && e.Timestamp.length >= 7) {
+        const ym = e.Timestamp.slice(0, 7)
+        if (/^\d{4}-\d{2}$/.test(ym)) {
+          months.add(ym)
+        }
+      }
+    })
+    
+    return Array.from(months).sort((a, b) => b.localeCompare(a))
+  }, [allEntries, thisMonthStr, lastMonthStr])
+
+  const isSingleMonth = selectedMonths.length === 1
+  const activeMonth = isSingleMonth ? selectedMonths[0] : null
+  
+  const isCurrentMonthActive = useMemo(() => activeMonth === thisMonthStr, [activeMonth, thisMonthStr])
+  const isLastMonthActive = useMemo(() => activeMonth === lastMonthStr, [activeMonth, lastMonthStr])
+
+  const isDropdownActive = useMemo(() => {
+    return !(selectedMonths.length === 1 && (selectedMonths[0] === thisMonthStr || selectedMonths[0] === lastMonthStr))
+  }, [selectedMonths, thisMonthStr, lastMonthStr])
+
+  const dropdownLabel = useMemo(() => {
+    if (!isDropdownActive) return 'More Months'
+    if (selectedMonths.length === 1) return getMonthLabel(selectedMonths[0])
+    return `${selectedMonths.length} Selected`
+  }, [isDropdownActive, selectedMonths])
+
+  const toggleMonthInDropdown = useCallback((ym) => {
+    setSelectedMonths(prev => {
+      if (prev.includes(ym)) {
+        if (prev.length === 1) return prev
+        return prev.filter(m => m !== ym)
+      } else {
+        return [...prev, ym]
+      }
+    })
+  }, [])
 
   // Entries with rent optionally excluded - applied at source so all charts are covered
   const baseEntries = useMemo(() =>
@@ -46,10 +134,15 @@ export default function DashboardScreen() {
   )
 
   // Only spend entries for selected person and period
-  const spendEntries = useMemo(() =>
-    filterEntries(baseEntries, { dateFrom, dateTo, person, type: 'Spend' }),
-    [baseEntries, dateFrom, dateTo, person]
-  )
+  const spendEntries = useMemo(() => {
+    return baseEntries.filter(e => {
+      if (e.Type !== 'Spend') return false
+      if (person && person !== 'both' && (e.AddedBy ? e.AddedBy[0].toUpperCase() : '?') !== person) return false
+      if (!e.Timestamp || e.Timestamp.length < 7) return false
+      const ym = e.Timestamp.slice(0, 7)
+      return selectedMonths.includes(ym)
+    })
+  }, [baseEntries, selectedMonths, person])
 
   const totalSpend = useMemo(() =>
     spendEntries.reduce((s, e) => s + parseFloat(e.Amount || 0), 0),
@@ -58,7 +151,7 @@ export default function DashboardScreen() {
 
   // Budget remaining for this month (only shown for thisMonth preset)
   const budgetRemaining = useMemo(() => {
-    if (preset !== 'thisMonth') return null
+    if (!isCurrentMonthActive) return null
     const { dateFrom: mFrom, dateTo: mTo } = getDateRange('thisMonth')
     const monthSpend = filterEntries(allEntries, { dateFrom: mFrom, dateTo: mTo, person, type: 'Spend' })
     const budgets = person === 'both'
@@ -71,16 +164,12 @@ export default function DashboardScreen() {
     const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate()
     const daysLeft = lastDay - today.getDate()
     return { total: totalBudget, spent, remaining: totalBudget - spent, daysLeft }
-  }, [allEntries, categories, gauthamBudgets, mariaBudgets, person, preset])
+  }, [allEntries, categories, gauthamBudgets, mariaBudgets, person, isCurrentMonthActive])
 
   // Savings highlight: this period vs previous period spend difference
   const savingsHighlight = useMemo(() => {
-    const prevPreset = preset === 'lastMonth' ? 'last3Months' : null
-    if (!prevPreset) return null
-    const { dateFrom: prevFrom, dateTo: prevTo } = getDateRange(prevPreset)
-    // Use a comparable single-month window for last3Months (the month before lastMonth)
+    if (!isLastMonthActive) return null
     const now = new Date()
-    const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
     const twoMonthsAgoStart = new Date(now.getFullYear(), now.getMonth() - 2, 1)
     const twoMonthsAgoEnd = new Date(now.getFullYear(), now.getMonth() - 1, 0)
     const prevSingle = filterEntries(baseEntries, {
@@ -92,11 +181,11 @@ export default function DashboardScreen() {
     if (prevTotal === 0) return null
     const diff = Math.round(prevTotal - totalSpend)
     return diff > 0 ? diff : null
-  }, [baseEntries, totalSpend, preset, person])
+  }, [baseEntries, totalSpend, isLastMonthActive, person])
 
   // Under budget celebration: last month finished under budget
   const underBudgetCelebration = useMemo(() => {
-    if (preset !== 'lastMonth') return null
+    if (!isLastMonthActive) return null
     const { dateFrom: mFrom, dateTo: mTo } = getDateRange('lastMonth')
     const monthSpend = filterEntries(allEntries, { dateFrom: mFrom, dateTo: mTo, person, type: 'Spend' })
     const budgets = person === 'both'
@@ -107,14 +196,13 @@ export default function DashboardScreen() {
     const spent = monthSpend.reduce((s, e) => s + parseFloat(e.Amount || 0), 0)
     const saved = Math.round(totalBudget - spent)
     return saved > 0 ? saved : null
-  }, [allEntries, categories, gauthamBudgets, mariaBudgets, person, preset])
+  }, [allEntries, categories, gauthamBudgets, mariaBudgets, person, isLastMonthActive])
+
   const dailyAverage = useMemo(() => {
-    if (!dateFrom || spendEntries.length === 0) return 0
-    const from = new Date(dateFrom)
-    const to = dateTo ? new Date(dateTo) : new Date()
-    const days = Math.max(1, Math.ceil((to - from) / (1000 * 60 * 60 * 24)) + 1)
-    return Math.round(totalSpend / days)
-  }, [totalSpend, dateFrom, dateTo, spendEntries])
+    if (selectedMonths.length === 0 || spendEntries.length === 0) return 0
+    const totalDays = selectedMonths.reduce((sum, m) => sum + getDaysInMonth(m), 0)
+    return Math.round(totalSpend / Math.max(1, totalDays))
+  }, [totalSpend, selectedMonths, spendEntries])
 
   // Category breakdown for pie chart
   const categoryData = useMemo(() => {
@@ -148,10 +236,14 @@ export default function DashboardScreen() {
       map[day] = (map[day] || 0) + parseFloat(e.Amount || 0)
     })
     let cumulative = 0
-    return Object.entries(map).sort().map(([date, amount]) => {
+    const sorted = Object.entries(map).sort()
+    const result = []
+    for (let i = 0; i < sorted.length; i++) {
+      const [date, amount] = sorted[i]
       cumulative += Math.round(amount)
-      return { date: formatDayLabel(date), total: cumulative }
-    })
+      result.push({ date: formatDayLabel(date), total: cumulative })
+    }
+    return result
   }, [spendEntries])
 
   // Top 5 individual spends
@@ -167,9 +259,15 @@ export default function DashboardScreen() {
 
   // Category trend: this period vs previous period
   const categoryTrendData = useMemo(() => {
-    const prevPreset = preset === 'thisMonth' ? 'lastMonth' : preset === 'lastMonth' ? 'last3Months' : null
-    if (!prevPreset) return []
-    const { dateFrom: prevFrom, dateTo: prevTo } = getDateRange(prevPreset)
+    if (!isSingleMonth || !activeMonth) return []
+    
+    const prevMonth = getPreviousMonth(activeMonth)
+    const [py, pm] = prevMonth.split('-').map(Number)
+    
+    const prevFrom = `${prevMonth}-01`
+    const prevLastDay = new Date(py, pm, 0).getDate()
+    const prevTo = `${prevMonth}-${String(prevLastDay).padStart(2, '0')}`
+    
     const prevEntries = filterEntries(baseEntries, { dateFrom: prevFrom, dateTo: prevTo, person, type: 'Spend' })
     const current = {}, previous = {}
     spendEntries.forEach(e => { current[e.Category] = (current[e.Category] || 0) + parseFloat(e.Amount || 0) })
@@ -180,7 +278,7 @@ export default function DashboardScreen() {
       Current: Math.round(current[cat] || 0),
       Previous: Math.round(previous[cat] || 0)
     })).filter(d => d.Current > 0 || d.Previous > 0)
-  }, [spendEntries, baseEntries, preset, person])
+  }, [spendEntries, baseEntries, isSingleMonth, activeMonth, person])
 
   // Weekday vs Weekend
   const weekdayData = useMemo(() => {
@@ -200,7 +298,31 @@ export default function DashboardScreen() {
     }))
   }, [spendEntries])
 
-  const prevLabel = preset === 'thisMonth' ? 'Last Month' : preset === 'lastMonth' ? 'Last 3 Months' : null
+  // Budget vs Spend data
+  const budgetVsSpendData = useMemo(() => {
+    const baseBudgets = person === 'both'
+      ? Object.fromEntries(categories.map(c => [c, (gauthamBudgets[c] || 0) + (mariaBudgets[c] || 0)]))
+      : person === 'G' ? gauthamBudgets : mariaBudgets
+    const numMonths = Math.max(1, selectedMonths.length)
+    const activeBudgets = Object.fromEntries(
+      categories.map(c => [c, (baseBudgets[c] || 0) * numMonths])
+    )
+    const spendsMap = {}
+    spendEntries.forEach(e => {
+      spendsMap[e.Category] = (spendsMap[e.Category] || 0) + parseFloat(e.Amount || 0)
+    })
+    return categories
+      .map(cat => {
+        const spent = Math.round(spendsMap[cat] || 0)
+        const budget = Math.round(activeBudgets[cat] || 0)
+        return { name: cat, Spent: spent, Budget: budget }
+      })
+      .filter(d => d.Spent > 0 || d.Budget > 0)
+      .sort((a, b) => b.Spent - a.Spent)
+  }, [categories, person, selectedMonths, spendEntries, gauthamBudgets, mariaBudgets])
+
+  const currentLabel = isSingleMonth && activeMonth ? getMonthLabel(activeMonth) : ''
+  const prevLabel = isSingleMonth && activeMonth ? getMonthLabel(getPreviousMonth(activeMonth)) : ''
 
   return (
     <div className={styles.screen}>
@@ -210,11 +332,30 @@ export default function DashboardScreen() {
       </div>
 
       <div className={styles.filters}>
-        {PRESETS.map(p => (
-          <button key={p} className={preset === p ? styles.activeFilter : styles.filter} onClick={() => setPreset(p)}>
-            {PRESET_LABELS[p]}
-          </button>
-        ))}
+        <button
+          className={(selectedMonths.length === 1 && selectedMonths[0] === thisMonthStr) ? styles.activeFilter : styles.filter}
+          onClick={() => {
+            setSelectedMonths([thisMonthStr])
+            setModalOpen(false)
+          }}
+        >
+          This Month
+        </button>
+        <button
+          className={(selectedMonths.length === 1 && selectedMonths[0] === lastMonthStr) ? styles.activeFilter : styles.filter}
+          onClick={() => {
+            setSelectedMonths([lastMonthStr])
+            setModalOpen(false)
+          }}
+        >
+          Last Month
+        </button>
+        <button
+          className={isDropdownActive ? styles.activeDropdownBtn : styles.dropdownBtn}
+          onClick={() => setModalOpen(true)}
+        >
+          {dropdownLabel} <span style={{ fontSize: '0.65rem' }}>▼</span>
+        </button>
       </div>
 
       <div className={styles.personFilter}>
@@ -369,7 +510,7 @@ export default function DashboardScreen() {
           {categoryTrendData.length > 0 && prevLabel && (
             <div className={styles.chart}>
               <h3 className={styles.chartTitle}>Category Trend</h3>
-              <p className={styles.chartSub}>{PRESET_LABELS[preset]} vs {prevLabel}</p>
+              <p className={styles.chartSub}>{currentLabel} vs {prevLabel}</p>
               <ResponsiveContainer width="100%" height={180}>
                 <BarChart data={categoryTrendData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
                   <XAxis dataKey="name" tick={{ fontSize: 10 }} />
@@ -380,7 +521,7 @@ export default function DashboardScreen() {
                 </BarChart>
               </ResponsiveContainer>
               <div style={{ display: 'flex', gap: 16, justifyContent: 'center', marginTop: 8, fontSize: '0.75rem', color: '#6b7280' }}>
-                <span><span style={{ display: 'inline-block', width: 10, height: 10, background: '#2563eb', borderRadius: 2, marginRight: 4 }}></span>{PRESET_LABELS[preset]}</span>
+                <span><span style={{ display: 'inline-block', width: 10, height: 10, background: '#2563eb', borderRadius: 2, marginRight: 4 }}></span>{currentLabel}</span>
                 <span><span style={{ display: 'inline-block', width: 10, height: 10, background: '#d1d5db', borderRadius: 2, marginRight: 4 }}></span>{prevLabel}</span>
               </div>
             </div>
@@ -414,12 +555,74 @@ export default function DashboardScreen() {
             </div>
           )}
 
+          {/* Category Spend vs Budget */}
+          {budgetVsSpendData.length > 0 && (
+            <div className={styles.chart}>
+              <h3 className={styles.chartTitle}>Spend vs Budget</h3>
+              <ResponsiveContainer width="100%" height={budgetVsSpendData.length * 50 + 35}>
+                <BarChart data={budgetVsSpendData} layout="vertical" margin={{ top: 10, right: 70, left: 4, bottom: 10 }}>
+                  <XAxis type="number" tick={{ fontSize: 10 }} />
+                  <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={90} />
+                  <Tooltip formatter={v => `₹${formatAmount(v)}`} />
+                  <Bar dataKey="Spent" fill="#2563eb" radius={[0, 4, 4, 0]}>
+                    <LabelList dataKey="Spent" position="right" formatter={v => `₹${formatAmount(v)}`} style={{ fontSize: 10, fill: '#4b5563' }} />
+                  </Bar>
+                  <Bar dataKey="Budget" fill="#10b981" radius={[0, 4, 4, 0]}>
+                    <LabelList dataKey="Budget" position="right" formatter={v => `₹${formatAmount(v)}`} style={{ fontSize: 10, fill: '#4b5563' }} />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+              <div style={{ display: 'flex', gap: 16, justifyContent: 'center', marginTop: 8, fontSize: '0.75rem', color: '#6b7280' }}>
+                <span><span style={{ display: 'inline-block', width: 10, height: 10, background: '#2563eb', borderRadius: 2, marginRight: 4 }}></span>Spent</span>
+                <span><span style={{ display: 'inline-block', width: 10, height: 10, background: '#10b981', borderRadius: 2, marginRight: 4 }}></span>Budget</span>
+              </div>
+            </div>
+          )}
+
           {spendEntries.length === 0 && (
             <p className={styles.empty}>No entries for this period.</p>
           )}
         </div>
       )}
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+      
+      {modalOpen && (
+        <div className={styles.modalOverlay} onClick={() => setModalOpen(false)}>
+          <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h3 className={styles.modalTitle}>Select Months</h3>
+              <button className={styles.modalCloseBtn} onClick={() => setModalOpen(false)}>
+                &times;
+              </button>
+            </div>
+            <div className={styles.modalBody}>
+              {availableMonths.map(ym => {
+                const isChecked = selectedMonths.includes(ym)
+                return (
+                  <div
+                    key={ym}
+                    className={styles.dropdownItem}
+                    onClick={() => toggleMonthInDropdown(ym)}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isChecked}
+                      className={styles.checkbox}
+                      readOnly
+                    />
+                    <span>{getMonthLabel(ym)}</span>
+                  </div>
+                )
+              })}
+            </div>
+            <div className={styles.modalFooter}>
+              <button className={styles.modalDoneBtn} onClick={() => setModalOpen(false)}>
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
