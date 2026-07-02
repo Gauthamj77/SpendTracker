@@ -195,7 +195,7 @@ export default function DashboardScreen() {
     if (totalBudget === 0) return null
     const spent = monthSpend.reduce((s, e) => s + parseFloat(e.Amount || 0), 0)
     const saved = Math.round(totalBudget - spent)
-    return saved > 0 ? saved : null
+    return saved !== 0 ? saved : null
   }, [allEntries, categories, gauthamBudgets, mariaBudgets, person, isLastMonthActive])
 
   const dailyAverage = useMemo(() => {
@@ -379,11 +379,17 @@ export default function DashboardScreen() {
       {loading ? <p className={styles.loading}>Loading...</p> : (
         <div className={styles.body}>
 
-          {/* Under budget celebration banner */}
-          {underBudgetCelebration && (
+          {/* Budget result banner - celebration or warning */}
+          {underBudgetCelebration && underBudgetCelebration > 0 && (
             <div className={styles.celebrationBanner}>
               <span className={styles.celebrationIcon}>🎉</span>
               <span>You finished last month <strong>₹{formatAmount(underBudgetCelebration)} under budget</strong></span>
+            </div>
+          )}
+          {underBudgetCelebration && underBudgetCelebration < 0 && (
+            <div className={styles.warningBanner}>
+              <span className={styles.celebrationIcon}>⚠️</span>
+              <span>You went <strong>₹{formatAmount(Math.abs(underBudgetCelebration))} over budget</strong> last month</span>
             </div>
           )}
 

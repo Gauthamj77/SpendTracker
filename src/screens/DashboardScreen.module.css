@@ -25,6 +25,12 @@
   border-radius: var(--radius); padding: 12px 16px;
   font-size: 0.875rem; color: #166534;
 }
+.warningBanner {
+  display: flex; align-items: center; gap: 10px;
+  background: #fff7ed; border: 1px solid #fdba74;
+  border-radius: var(--radius); padding: 12px 16px;
+  font-size: 0.875rem; color: #9a3412;
+}
 .celebrationIcon { font-size: 1.2rem; flex-shrink: 0; }
 
 .dropdownBtn, .activeDropdownBtn {
